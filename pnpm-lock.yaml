@@ -11,7 +11,7 @@ importers:
   apps/api:
     dependencies:
       '@prisma/adapter-pg':
-        specifier: ^7.10.1
+        specifier: 7.10.1
         version: 7.10.1
       '@prisma/client':
         specifier: 7.10.1
