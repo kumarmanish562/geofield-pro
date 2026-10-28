@@ -1,0 +1,29 @@
+
+services:
+  postgres:
+    image: postgis/postgis:18-3.6
+    container_name: geofield-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: geofield
+      POSTGRES_USER: geofield_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/18/docker
+
+    ports:
+      - "127.0.0.1:5444:5432"
+
+    volumes:
+      - geofield_postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U geofield_admin -d geofield
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  geofield_postgres_data:
