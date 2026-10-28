@@ -1,0 +1,87 @@
+name: GeoField Pro CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API - Install, Migrate, Build and Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.5
+        env:
+          POSTGRES_DB: geofield_test
+          POSTGRES_USER: geofield
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U geofield -d geofield_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://geofield:test_password@localhost:5432/geofield_test?schema=public
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify PostgreSQL and PostGIS
+        run: |
+          docker exec "$POSTGRES_CONTAINER" true
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @geofield/api db:generate
+
+      - name: Apply database migrations
+        run: pnpm --filter @geofield/api db:deploy
+
+      - name: Verify PostGIS
+        run: |
+          node --input-type=module -e '
+            import { PrismaClient } from "@prisma/client";
+            const prisma = new PrismaClient();
+            try {
+              const result = await prisma.$queryRaw`
+                SELECT PostGIS_Full_Version() AS version
+              `;
+              console.log("PostGIS verified:", result[0].version);
+            } finally {
+              await prisma.$disconnect();
+            }
+          '
+
+      - name: Build API
+        run: pnpm --filter @geofield/api build
+
+      - name: Run automated tests
+        run: pnpm --filter @geofield/api test

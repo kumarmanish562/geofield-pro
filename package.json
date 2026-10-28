@@ -1,0 +1,22 @@
+{
+  "name": "geofield-pro",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "dev": "pnpm --filter @geofield/api dev",
+    "start": "pnpm --filter @geofield/api start",
+    "build": "pnpm --filter @geofield/api build",
+    "test": "pnpm --filter @geofield/api test",
+    "test:watch": "pnpm --filter @geofield/api test:watch",
+    "test:coverage": "pnpm --filter @geofield/api test:coverage",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:status": "docker compose ps",
+    "db:generate": "pnpm --filter @geofield/api db:generate",
+    "db:migrate": "pnpm --filter @geofield/api db:migrate",
+    "db:deploy": "pnpm --filter @geofield/api db:deploy",
+    "db:studio": "pnpm --filter @geofield/api db:studio"
+  }
+}
