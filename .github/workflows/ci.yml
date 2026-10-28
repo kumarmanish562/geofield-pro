@@ -57,24 +57,20 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter @geofield/api db:generate
 
-      - name: Verify PostgreSQL and PostGIS
-        run: |
-          docker exec "$POSTGRES_CONTAINER" \
-            psql -U geofield -d geofield_test \
-            -c "SELECT PostGIS_Full_Version();"
-        env:
-          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-
-      - name: Apply database migrations
-        run: pnpm --filter @geofield/api db:deploy
-
       - name: Verify PostGIS through Prisma
         working-directory: apps/api
         run: |
           node --input-type=module -e '
+            import { PrismaPg } from "@prisma/adapter-pg";
             import { PrismaClient } from "@prisma/client";
 
-            const prisma = new PrismaClient();
+            const adapter = new PrismaPg({
+              connectionString: process.env.DATABASE_URL
+            });
+
+            const prisma = new PrismaClient({
+              adapter
+            });
 
             try {
               const result = await prisma.$queryRaw`
