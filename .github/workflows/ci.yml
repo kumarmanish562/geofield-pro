@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - "feature/**"
   pull_request:
     branches:
       - main
@@ -53,27 +54,33 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify PostgreSQL and PostGIS
-        run: |
-          docker exec "$POSTGRES_CONTAINER" true
-        env:
-          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
-
       - name: Generate Prisma Client
         run: pnpm --filter @geofield/api db:generate
+
+      - name: Verify PostgreSQL and PostGIS
+        run: |
+          docker exec "$POSTGRES_CONTAINER" \
+            psql -U geofield -d geofield_test \
+            -c "SELECT PostGIS_Full_Version();"
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
 
       - name: Apply database migrations
         run: pnpm --filter @geofield/api db:deploy
 
-      - name: Verify PostGIS
+      - name: Verify PostGIS through Prisma
+        working-directory: apps/api
         run: |
           node --input-type=module -e '
             import { PrismaClient } from "@prisma/client";
+
             const prisma = new PrismaClient();
+
             try {
               const result = await prisma.$queryRaw`
                 SELECT PostGIS_Full_Version() AS version
               `;
+
               console.log("PostGIS verified:", result[0].version);
             } finally {
               await prisma.$disconnect();
