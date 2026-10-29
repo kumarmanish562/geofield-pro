@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
+import cookieParser from "cookie-parser";
 
 import { env } from "./config/env.js";
 import { requestIdMiddleware } from "./middleware/request-id.js";
@@ -20,10 +21,33 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
-    credentials: false
+    origin(origin, callback) {
+      // Native clients and server-to-server requests may omit Origin.
+      if (!origin || env.CORS_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origin not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-GeoField-Request",
+    ],
   })
 );
+
+app.use(cookieParser());
+
+app.use(requestIdMiddleware);
+app.use(requestLogger);
+
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
+
+app.use("/api/v1", v1Router);
 
 app.use(requestIdMiddleware);
 app.use(requestLogger);
