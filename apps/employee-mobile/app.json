@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.geofieldpro.employee",
       "adaptiveIcon": {
         "backgroundColor": "#123c35"
       }
