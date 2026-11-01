@@ -92,6 +92,35 @@ const openApiDocument = {
       }
     },
 
+    [`${env.API_PREFIX}/auth/register`]: {
+      post: {
+        summary: "Register an employee when public registration is enabled",
+        responses: {
+          "201": { description: "Account created." },
+          "403": { $ref: "#/components/schemas/ErrorResponse" }
+        }
+      }
+    },
+
+    [`${env.API_PREFIX}/auth/forgot-password`]: {
+      post: {
+        summary: "Request password reset instructions",
+        responses: {
+          "200": { description: "A generic reset response was returned." }
+        }
+      }
+    },
+
+    [`${env.API_PREFIX}/auth/reset-password`]: {
+      post: {
+        summary: "Set a new password with a reset token",
+        responses: {
+          "200": { description: "Password reset completed." },
+          "400": { $ref: "#/components/schemas/ErrorResponse" }
+        }
+      }
+    },
+
     [`${env.API_PREFIX}/auth/refresh`]: {
       post: {
         summary: "Rotate a refresh token",

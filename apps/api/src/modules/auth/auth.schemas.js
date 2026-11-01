@@ -8,6 +8,16 @@ export const loginSchema = z.object({
   clientType: z.enum(["web", "mobile"]),
 });
 
+export const registerSchema = z.object({
+  organizationId: z.string().uuid(),
+  name: z.string().trim().min(2).max(150),
+  email: z.string().trim().email().max(320).transform((value) =>
+    value.toLowerCase()
+  ),
+  password: z.string().min(12).max(128),
+  clientType: z.enum(["web", "mobile"]).default("web"),
+});
+
 export const refreshSchema = z.object({
   refreshToken: z.string().min(32).max(512).optional(),
 });
@@ -21,4 +31,15 @@ export const invitationAcceptanceSchema = z.object({
 
 export const logoutSchema = z.object({
   refreshToken: z.string().min(32).max(512).optional(),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().max(320).transform((value) =>
+    value.toLowerCase()
+  ),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(32).max(512),
+  password: z.string().min(12).max(128),
 });
