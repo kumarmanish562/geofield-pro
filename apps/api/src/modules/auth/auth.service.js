@@ -8,6 +8,7 @@ import {
   generateRefreshToken,
   hashRefreshToken,
 } from "./auth.tokens.js";
+import { recordAuthEvent } from "./auth.audit.js";
 
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
@@ -103,6 +104,11 @@ export async function login({ email, password, clientType, req }) {
 
   // Use the same outward-facing error for unknown and invalid credentials.
   if (!user) {
+    await recordAuthEvent({
+      event: "AUTH_LOGIN_FAILED",
+      req,
+      metadata: { reason: "unknown_email" },
+    });
     throw genericCredentialsError();
   }
 
@@ -133,6 +139,14 @@ export async function login({ email, password, clientType, req }) {
       },
     });
 
+    await recordAuthEvent({
+      event: "AUTH_LOGIN_FAILED",
+      actorUserId: user.id,
+      organizationId: user.organizationId,
+      req,
+      metadata: { reason: "invalid_password" },
+    });
+
     throw genericCredentialsError();
   }
 
@@ -148,7 +162,15 @@ export async function login({ email, password, clientType, req }) {
       },
     });
 
-    return createSession(tx, user, req);
+    const sessionResult = await createSession(tx, user, req);
+    await recordAuthEvent({
+      event: "AUTH_LOGIN_SUCCEEDED",
+      actorUserId: user.id,
+      organizationId: user.organizationId,
+      req,
+      client: tx,
+    });
+    return sessionResult;
   });
 
   const accessToken = await createAccessToken({
@@ -340,4 +362,208 @@ export async function logoutSession({ refreshToken }) {
       data: { revokedAt: now },
     });
   });
+}
+
+export async function registerUser({
+  organizationId,
+  name,
+  email,
+  password,
+  clientType,
+  req,
+}) {
+  if (!env.ALLOW_PUBLIC_REGISTRATION) {
+    throw new AuthError(
+      "Public registration is disabled.",
+      403,
+      "REGISTRATION_DISABLED"
+    );
+  }
+
+  const organization = await prisma.organization.findFirst({
+    where: { id: organizationId, status: "ACTIVE" },
+    select: { id: true },
+  });
+  if (!organization) {
+    throw new AuthError(
+      "The organization is not available.",
+      400,
+      "ORGANIZATION_UNAVAILABLE"
+    );
+  }
+
+  const passwordHash = await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: env.ARGON2_MEMORY_COST,
+    timeCost: env.ARGON2_TIME_COST,
+    parallelism: env.ARGON2_PARALLELISM,
+  });
+
+  const user = await prisma.$transaction(async (tx) => {
+    try {
+      const created = await tx.user.create({
+        data: {
+          organizationId,
+          name: name.trim(),
+          email,
+          passwordHash,
+          role: "EMPLOYEE",
+          status: "ACTIVE",
+          passwordChangedAt: new Date(),
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          organizationId: true,
+        },
+      });
+      await recordAuthEvent({
+        event: "AUTH_REGISTERED",
+        actorUserId: created.id,
+        organizationId,
+        req,
+        client: tx,
+      });
+      return created;
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new AuthError(
+          "An account already exists for this email address.",
+          409,
+          "USER_ALREADY_EXISTS"
+        );
+      }
+      throw error;
+    }
+  });
+
+  const sessionResult = await prisma.$transaction((tx) =>
+    createSession(tx, user, req)
+  );
+  const accessToken = await createAccessToken({
+    userId: user.id,
+    sessionId: sessionResult.session.id,
+    organizationId,
+    role: user.role,
+  });
+  return {
+    accessToken,
+    refreshToken:
+      clientType === "mobile" ? sessionResult.refreshToken : undefined,
+    refreshExpiresAt: sessionResult.refreshExpiresAt,
+    user: publicUser(user),
+  };
+}
+
+export async function requestPasswordReset({ email, req }) {
+  const genericMessage =
+    "If an account exists, password reset instructions will be sent.";
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, organizationId: true, status: true },
+  });
+
+  if (!user || user.status !== "ACTIVE") {
+    await recordAuthEvent({
+      event: "AUTH_PASSWORD_RESET_REQUESTED",
+      req,
+      metadata: { found: false },
+    });
+    return { message: genericMessage };
+  }
+
+  const token = generateRefreshToken();
+  await prisma.$transaction(async (tx) => {
+    await tx.passwordResetToken.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    await tx.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashRefreshToken(token),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+    await recordAuthEvent({
+      event: "AUTH_PASSWORD_RESET_REQUESTED",
+      actorUserId: user.id,
+      organizationId: user.organizationId,
+      req,
+      client: tx,
+    });
+  });
+
+  return {
+    message: genericMessage,
+    ...(env.NODE_ENV === "production" ? {} : { resetToken: token }),
+  };
+}
+
+export async function resetPassword({ token, password, req }) {
+  const passwordHash = await argon2.hash(password, {
+    type: argon2.argon2id,
+    memoryCost: env.ARGON2_MEMORY_COST,
+    timeCost: env.ARGON2_TIME_COST,
+    parallelism: env.ARGON2_PARALLELISM,
+  });
+
+  const result = await prisma.$transaction(async (tx) => {
+    const reset = await tx.passwordResetToken.findUnique({
+      where: { tokenHash: hashRefreshToken(token) },
+      include: { user: true },
+    });
+    const now = new Date();
+
+    if (
+      !reset ||
+      reset.usedAt ||
+      reset.expiresAt <= now ||
+      reset.user.status !== "ACTIVE"
+    ) {
+      return false;
+    }
+
+    const claimed = await tx.passwordResetToken.updateMany({
+      where: { id: reset.id, usedAt: null, expiresAt: { gt: now } },
+      data: { usedAt: now },
+    });
+    if (claimed.count !== 1) return false;
+
+    await tx.user.update({
+      where: { id: reset.userId },
+      data: {
+        passwordHash,
+        passwordChangedAt: now,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+    await tx.authSession.updateMany({
+      where: { userId: reset.userId, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    await tx.refreshToken.updateMany({
+      where: { session: { userId: reset.userId }, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    await recordAuthEvent({
+      event: "AUTH_PASSWORD_RESET_COMPLETED",
+      actorUserId: reset.userId,
+      organizationId: reset.user.organizationId,
+      req,
+      client: tx,
+    });
+    return true;
+  });
+
+  if (!result) {
+    throw new AuthError(
+      "The password reset token is invalid or expired.",
+      400,
+      "RESET_TOKEN_INVALID"
+    );
+  }
 }

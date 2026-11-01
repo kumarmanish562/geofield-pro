@@ -1,5 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 
 import { env } from "../../config/env.js";
 import { prisma } from "../../database/prisma.js";
@@ -9,12 +10,18 @@ import {
   refreshSchema,
   logoutSchema,
   invitationAcceptanceSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "../../modules/auth/auth.schemas.js";
 
 import {
   login,
   logoutSession,
   refreshSession,
+  registerUser,
+  requestPasswordReset,
+  resetPassword,
 } from "../../modules/auth/auth.service.js";
 
 import {
@@ -62,6 +69,13 @@ const refreshLimiter = rateLimit({
       message: "Too many refresh attempts. Please try again later.",
     },
   },
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: env.AUTH_LOGIN_WINDOW_MS,
+  limit: env.AUTH_LOGIN_MAX_REQUESTS,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
 });
 
 function sendError(res, req, error) {
@@ -132,6 +146,96 @@ function requireTrustedBrowserRequest(req, res, next) {
 
   return next();
 }
+
+router.post("/register", passwordResetLimiter, async (req, res) => {
+  try {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "The registration details are invalid.",
+        },
+        requestId: req.id,
+      });
+    }
+
+    const result = await registerUser({ ...parsed.data, req });
+    if (parsed.data.clientType === "web") {
+      setRefreshCookie(res, result.refreshToken ?? "", result.refreshExpiresAt);
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        accessToken: result.accessToken,
+        tokenType: "Bearer",
+        expiresIn: env.JWT_ACCESS_TOKEN_TTL_SECONDS,
+        user: result.user,
+        ...(parsed.data.clientType === "mobile"
+          ? {
+              refreshToken: result.refreshToken,
+              refreshExpiresAt: result.refreshExpiresAt,
+            }
+          : {}),
+      },
+      requestId: req.id,
+    });
+  } catch (error) {
+    return sendError(res, req, error);
+  }
+});
+
+router.post("/forgot-password", passwordResetLimiter, async (req, res) => {
+  try {
+    const parsed = forgotPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "The email address is invalid.",
+        },
+        requestId: req.id,
+      });
+    }
+
+    const result = await requestPasswordReset({ ...parsed.data, req });
+    return res.status(200).json({
+      success: true,
+      data: result,
+      requestId: req.id,
+    });
+  } catch (error) {
+    return sendError(res, req, error);
+  }
+});
+
+router.post("/reset-password", passwordResetLimiter, async (req, res) => {
+  try {
+    const parsed = resetPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "The password reset details are invalid.",
+        },
+        requestId: req.id,
+      });
+    }
+
+    await resetPassword({ ...parsed.data, req });
+    return res.status(200).json({
+      success: true,
+      data: { message: "Password reset completed." },
+      requestId: req.id,
+    });
+  } catch (error) {
+    return sendError(res, req, error);
+  }
+});
 
 router.post("/login", loginLimiter, async (req, res) => {
   try {

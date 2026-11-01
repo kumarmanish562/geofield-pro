@@ -22,7 +22,7 @@
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
-    "db:status": "docker compose ps",
+    "db:infra-status": "docker compose ps",
     "db:generate": "pnpm --filter @geofield/api db:generate",
     "db:migrate": "pnpm --filter @geofield/api db:migrate",
     "db:deploy": "pnpm --filter @geofield/api db:deploy",
