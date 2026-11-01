@@ -309,9 +309,14 @@ Start PostgreSQL, apply migrations, and generate Prisma Client:
 
 ```powershell
 pnpm db:up
+pnpm db:status
 pnpm db:deploy
 pnpm db:generate
+pnpm db:seed
 ```
+
+`pnpm db:seed` requires `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in
+`apps/api/.env` and is limited to non-production environments.
 
 Run the applications in separate terminals:
 

@@ -70,6 +70,9 @@ export const envSchema = z.object({
   // Registration
   ALLOW_PUBLIC_REGISTRATION: booleanFromString.default(false),
 
+  SEED_ADMIN_EMAIL: z.string().email().optional(),
+  SEED_ADMIN_PASSWORD: z.string().min(12).optional(),
+
   // CORS: comma-separated origins
   CORS_ORIGINS: z
     .string()
