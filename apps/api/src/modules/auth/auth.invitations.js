@@ -180,6 +180,9 @@ export async function acceptInvitation({
         role: invitation.role,
         status: "ACTIVE",
         passwordChangedAt: now,
+        employeeProfile: {
+          create: { organizationId: invitation.organizationId },
+        },
       },
       select: {
         id: true,

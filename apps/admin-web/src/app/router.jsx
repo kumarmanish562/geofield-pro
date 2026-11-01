@@ -7,7 +7,6 @@ import {
   AnalyticsPage,
   AssignmentsPage,
   AttendancePage,
-  EmployeesPage,
   LiveMapPage,
   ReportsPage,
   SettingsPage,
@@ -16,6 +15,9 @@ import {
 } from "../pages/modulePages.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
 import { NotFoundPage } from "../pages/NotFoundPage.jsx";
+import { EmployeesPage } from "../pages/EmployeesPage.jsx";
+import { EmployeeDetailsPage } from "../pages/EmployeeDetailsPage.jsx";
+import { TeamsPage } from "../pages/TeamsPage.jsx";
 
 export function AppRouter() {
   return (
@@ -27,6 +29,8 @@ export function AppRouter() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/employees" element={<EmployeesPage />} />
+          <Route path="/employees/:userId" element={<EmployeeDetailsPage />} />
+          <Route path="/teams" element={<TeamsPage />} />
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
           <Route path="/villages" element={<VillagesPage />} />

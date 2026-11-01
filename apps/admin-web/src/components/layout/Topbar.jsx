@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 const titles = {
   "/dashboard": ["Dashboard", "A clear view of your field operations."],
   "/employees": ["Employees", "Manage your field workforce."],
+  "/teams": ["Teams", "Organize employees and supervisors."],
   "/attendance": ["Attendance", "Track team availability and work sessions."],
   "/assignments": ["Assignments", "Plan and monitor field work."],
   "/villages": ["Villages", "Manage village boundaries and spatial data."],

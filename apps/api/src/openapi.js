@@ -149,6 +149,68 @@ const openApiDocument = {
           "200": { description: "Authenticated user returned." },
           "401": { $ref: "#/components/schemas/ErrorResponse" }
         }
+      },
+
+      [`${env.API_PREFIX}/workforce/employees`]: {
+        get: {
+          summary: "List organization workforce records",
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: "search", in: "query", schema: { type: "string" } },
+            { name: "status", in: "query", schema: { type: "string" } },
+            { name: "page", in: "query", schema: { type: "integer", minimum: 1 } },
+            { name: "pageSize", in: "query", schema: { type: "integer", minimum: 1, maximum: 100 } }
+          ],
+          responses: {
+            "200": { description: "Paginated workforce records returned." },
+            "401": { $ref: "#/components/schemas/ErrorResponse" },
+            "403": { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+
+      [`${env.API_PREFIX}/workforce/employees/{userId}`]: {
+        get: {
+          summary: "Get an employee profile",
+          security: [{ BearerAuth: [] }],
+          responses: {
+            "200": { description: "Employee profile returned." },
+            "404": { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        },
+        patch: {
+          summary: "Update permitted employee fields",
+          security: [{ BearerAuth: [] }],
+          responses: {
+            "200": { description: "Employee profile updated." },
+            "400": { $ref: "#/components/schemas/ErrorResponse" },
+            "403": { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+
+      [`${env.API_PREFIX}/workforce/employees/invitations`]: {
+        post: {
+          summary: "Create an employee invitation",
+          security: [{ BearerAuth: [] }],
+          responses: {
+            "201": { description: "Invitation created in non-production environments." },
+            "503": { $ref: "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+
+      [`${env.API_PREFIX}/workforce/teams`]: {
+        get: {
+          summary: "List organization teams",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Teams returned." } }
+        },
+        post: {
+          summary: "Create an organization team",
+          security: [{ BearerAuth: [] }],
+          responses: { "201": { description: "Team created." } }
+        }
       }
     }
   }

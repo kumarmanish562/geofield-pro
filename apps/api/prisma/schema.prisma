@@ -42,6 +42,13 @@ enum InvitationStatus {
   @@map("invitation_status")
 }
 
+enum TeamStatus {
+  ACTIVE
+  ARCHIVED
+
+  @@map("team_status")
+}
+
 model Organization {
   id     String             @id @default(uuid()) @db.Uuid
   name   String             @db.VarChar(200)
@@ -53,6 +60,8 @@ model Organization {
   users       User[]
   sessions    AuthSession[]
   invitations OrganizationInvitation[]
+  teams       Team[]
+  employeeProfiles EmployeeProfile[]
 
   @@index([status])
   @@map("organizations")
@@ -81,10 +90,68 @@ model User {
   sentInvitations OrganizationInvitation[] @relation("InvitationSender")
   auditEvents     AuditLog[]              @relation("AuditActor")
   passwordResets  PasswordResetToken[]
+  employeeProfile EmployeeProfile?
+  supervisedEmployees EmployeeProfile[] @relation("EmployeeSupervisor")
+  supervisedTeams Team[] @relation("TeamSupervisor")
+  teamMemberships TeamMembership[]
 
   @@index([organizationId, status])
   @@index([organizationId, role])
   @@map("users")
+}
+
+model EmployeeProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  employeeCode   String?  @map("employee_code") @db.VarChar(50)
+  jobTitle       String?  @map("job_title") @db.VarChar(120)
+  phone          String?  @db.VarChar(30)
+  supervisorId   String?  @map("supervisor_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supervisor   User?        @relation("EmployeeSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, employeeCode])
+  @@index([organizationId, supervisorId])
+  @@map("employee_profiles")
+}
+
+model Team {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @map("organization_id") @db.Uuid
+  name           String     @db.VarChar(120)
+  description    String?    @db.VarChar(500)
+  supervisorId   String?    @map("supervisor_id") @db.Uuid
+  status         TeamStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  supervisor   User?            @relation("TeamSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  memberships  TeamMembership[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@index([organizationId, supervisorId])
+  @@map("teams")
+}
+
+model TeamMembership {
+  id        String   @id @default(uuid()) @db.Uuid
+  teamId    String   @map("team_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_memberships")
 }
 
 model PasswordResetToken {
