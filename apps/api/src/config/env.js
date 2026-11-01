@@ -17,13 +17,18 @@ const booleanFromString = z
   .transform((value) => value === "true");
 
 // Validate all API and authentication configuration.
-const envSchema = z.object({
+export const envSchema = z.object({
   // Application
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
 
   HOST: z.string().default("0.0.0.0"),
+
+  API_PREFIX: z
+    .string()
+    .regex(/^\/[a-zA-Z0-9/_-]*$/, "API_PREFIX must start with /")
+    .default("/api/v1"),
 
   PORT: z.coerce
     .number()
@@ -106,8 +111,37 @@ const envSchema = z.object({
     .default(20),
 });
 
+export function parseEnv(input) {
+  return envSchema.superRefine((values, context) => {
+    if (values.NODE_ENV === "production") {
+      for (const name of [
+        "JWT_ISSUER",
+        "JWT_AUDIENCE",
+        "JWT_SECRET",
+        "DATABASE_URL",
+      ]) {
+        if (!input[name]) {
+          context.addIssue({
+            code: "custom",
+            path: [name],
+            message: `${name} is required in production`,
+          });
+        }
+      }
+
+      if (!values.COOKIE_SECURE) {
+        context.addIssue({
+          code: "custom",
+          path: ["COOKIE_SECURE"],
+          message: "COOKIE_SECURE must be true in production",
+        });
+      }
+    }
+  }).safeParse(input);
+}
+
 // Validate without printing secret values.
-const result = envSchema.safeParse(process.env);
+const result = parseEnv(process.env);
 
 if (!result.success) {
   console.error("Environment configuration is invalid.");

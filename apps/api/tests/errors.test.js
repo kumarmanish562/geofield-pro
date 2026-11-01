@@ -13,4 +13,15 @@ describe("Unknown routes", () => {
     expect(response.body.error.code).toBe("NOT_FOUND");
     expect(response.body.requestId).toBeTruthy();
   });
+
+  it("rejects malformed JSON", async () => {
+    const response = await request(app)
+      .post("/api/v1/auth/login")
+      .set("Content-Type", "application/json")
+      .send('{"email":');
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("MALFORMED_JSON");
+    expect(response.body.requestId).toBeTruthy();
+  });
 });

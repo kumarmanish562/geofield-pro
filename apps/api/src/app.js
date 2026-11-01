@@ -45,50 +45,12 @@ app.use(requestIdMiddleware);
 app.use(requestLogger);
 
 app.use(express.json({ limit: "1mb" }));
-app.use(cookieParser());
-
-app.use("/api/v1", v1Router);
-
-app.use(requestIdMiddleware);
-app.use(requestLogger);
-
-app.use(express.json({ limit: "1mb" }));
-
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      status: "ok",
-      service: "geofield-api"
-    },
-    requestId: req.id
-  });
-});
-
-app.get("/api/ready", async (req, res, next) => {
-  try {
-    const { prisma } = await import("./database/prisma.js");
-
-    await prisma.$queryRaw`SELECT 1`;
-
-    res.status(200).json({
-      success: true,
-      data: {
-        status: "ready",
-        dependencies: {
-          postgres: "up"
-        }
-      },
-      requestId: req.id
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.use("/api/v1", v1Router);
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
+app.use(env.API_PREFIX, v1Router);
+app.use(
+  `${env.API_PREFIX}/docs`,
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument)
+);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

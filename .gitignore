@@ -20,3 +20,6 @@ Thumbs.db
 .idea/
 
 apps/api/src/generated/
+
+.expo/
+.expo-*/
