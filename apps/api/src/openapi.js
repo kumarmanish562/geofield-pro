@@ -211,6 +211,17 @@ const openApiDocument = {
           security: [{ BearerAuth: [] }],
           responses: { "201": { description: "Team created." } }
         }
+      },
+      [`${env.API_PREFIX}/assignments`]: {
+        get: { summary: "List organization or employee assignments", security: [{ BearerAuth: [] }], responses: { "200": { description: "Assignments returned." } } },
+        post: { summary: "Create a draft assignment", security: [{ BearerAuth: [] }], responses: { "201": { description: "Assignment created." }, "403": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/assignments/{id}`]: {
+        get: { summary: "Get an authorized assignment", security: [{ BearerAuth: [] }], responses: { "200": { description: "Assignment returned." }, "404": { $ref: "#/components/schemas/ErrorResponse" } } },
+        patch: { summary: "Update an assignment", security: [{ BearerAuth: [] }], responses: { "200": { description: "Assignment updated." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/me/assignments`]: {
+        get: { summary: "List assignments for the authenticated employee", security: [{ BearerAuth: [] }], responses: { "200": { description: "Published employee assignments returned." } } }
       }
     }
   }
