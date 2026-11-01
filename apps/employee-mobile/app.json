@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "GeoField Pro",
+    "slug": "geofield-pro",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#f2f4ed"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#123c35"
+      }
+    }
+  }
+}

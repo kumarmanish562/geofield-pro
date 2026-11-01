@@ -1,7 +1,8 @@
 import pinoHttp from "pino-http";
+import { env } from "../config/env.js";
 
 export const requestLogger = pinoHttp({
-  level: process.env.LOG_LEVEL || "info",
+  level: env.LOG_LEVEL,
 
   genReqId(req) {
     return req.id;

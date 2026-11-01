@@ -2,11 +2,20 @@
   "name": "geofield-pro",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.18.3",
   "scripts": {
     "dev": "pnpm --filter @geofield/api dev",
+    "dev:web": "pnpm --filter @geofield/admin-web dev",
+    "dev:mobile": "pnpm --filter @geofield/employee-mobile start",
     "start": "pnpm --filter @geofield/api start",
     "build": "pnpm --filter @geofield/api build",
+    "build:web": "pnpm --filter @geofield/admin-web build",
+    "build:all": "pnpm build && pnpm build:web && pnpm build:mobile",
+    "build:mobile": "pnpm --filter @geofield/employee-mobile build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "pnpm --filter @geofield/api test",
     "test:watch": "pnpm --filter @geofield/api test:watch",
     "test:coverage": "pnpm --filter @geofield/api test:coverage",
@@ -18,5 +27,10 @@
     "db:migrate": "pnpm --filter @geofield/api db:migrate",
     "db:deploy": "pnpm --filter @geofield/api db:deploy",
     "db:studio": "pnpm --filter @geofield/api db:studio"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2"
   }
 }

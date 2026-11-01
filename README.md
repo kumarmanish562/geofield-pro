@@ -57,7 +57,7 @@ The platform will allow organizations to:
 - Generate operational reports.
 - Maintain auditable records of important activities.
 
-**Current development stage:** Phase 00 — Product and Architecture Documentation.
+**Current development stage:** Phase 01 — Monorepo and Development Environment.
 
 The project is being developed incrementally through documented implementation phases.
 
@@ -288,3 +288,61 @@ Additional capabilities:
 - Idempotent synchronization
 - Audit logging
 - OpenAPI documentation
+```
+
+## Getting Started
+
+Requirements:
+
+- Node.js 22 or newer
+- pnpm 10
+- Docker Desktop for PostgreSQL/PostGIS
+
+Install dependencies and configure the API:
+
+```powershell
+pnpm install
+Copy-Item .env.example apps/api/.env
+```
+
+Start PostgreSQL, apply migrations, and generate Prisma Client:
+
+```powershell
+pnpm db:up
+pnpm db:deploy
+pnpm db:generate
+```
+
+Run the applications in separate terminals:
+
+```powershell
+pnpm dev
+pnpm dev:web
+pnpm dev:mobile
+```
+
+The API is available at `http://localhost:3000/api/v1`, the admin web
+application at the Vite URL shown in the terminal, and Expo provides a QR
+code or device-specific command for the mobile shell.
+
+## Quality Checks
+
+```powershell
+pnpm format:check
+pnpm lint
+pnpm build:all
+pnpm test
+```
+
+The API health, readiness, and Swagger endpoints are:
+
+- `GET /api/v1/health`
+- `GET /api/v1/ready`
+- `GET /api/v1/docs`
+
+## Project Status
+
+Phase 01 is complete. The repository contains API, admin web, and employee
+mobile application shells, shared workspace packages, environment setup,
+quality tooling, and CI validation. Product functionality is intentionally
+implemented in later phases according to the roadmap.
