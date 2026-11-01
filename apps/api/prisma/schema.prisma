@@ -49,6 +49,16 @@ enum TeamStatus {
   @@map("team_status")
 }
 
+enum AssignmentStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  COMPLETED
+  CANCELLED
+
+  @@map("assignment_status")
+}
+
 model Organization {
   id     String             @id @default(uuid()) @db.Uuid
   name   String             @db.VarChar(200)
@@ -62,6 +72,8 @@ model Organization {
   invitations OrganizationInvitation[]
   teams       Team[]
   employeeProfiles EmployeeProfile[]
+  assignments      Assignment[]
+  assignmentAudits AssignmentAuditLog[]
 
   @@index([status])
   @@map("organizations")
@@ -94,6 +106,12 @@ model User {
   supervisedEmployees EmployeeProfile[] @relation("EmployeeSupervisor")
   supervisedTeams Team[] @relation("TeamSupervisor")
   teamMemberships TeamMembership[]
+  managedAssignments Assignment[] @relation("AssignmentSupervisor")
+  createdAssignments Assignment[] @relation("AssignmentCreatedBy")
+  updatedAssignments Assignment[] @relation("AssignmentUpdatedBy")
+  assignmentMemberships AssignmentEmployee[] @relation("AssignmentEmployeeUser")
+  assignedAssignmentEmployees AssignmentEmployee[] @relation("AssignmentAssignedBy")
+  assignmentAudits AssignmentAuditLog[] @relation("AssignmentAuditActor")
 
   @@index([organizationId, status])
   @@index([organizationId, role])
@@ -152,6 +170,72 @@ model TeamMembership {
   @@unique([teamId, userId])
   @@index([userId])
   @@map("team_memberships")
+}
+
+model Assignment {
+  id                  String           @id @default(uuid()) @db.Uuid
+  organizationId      String           @map("organization_id") @db.Uuid
+  name                String           @db.VarChar(160)
+  description         String?          @db.VarChar(2000)
+  supervisorId        String           @map("supervisor_id") @db.Uuid
+  workArea            String?          @map("work_area") @db.VarChar(200)
+  startDate           DateTime         @map("start_date") @db.Date
+  dueDate             DateTime         @map("due_date") @db.Date
+  surveyRequirements  Json             @default("{}") @map("survey_requirements")
+  targets             Json             @default("{}")
+  status              AssignmentStatus @default(DRAFT)
+  publishedAt         DateTime?        @map("published_at")
+  createdById         String           @map("created_by_id") @db.Uuid
+  updatedById         String           @map("updated_by_id") @db.Uuid
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  supervisor User @relation("AssignmentSupervisor", fields: [supervisorId], references: [id], onDelete: Restrict)
+  createdBy User @relation("AssignmentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy User @relation("AssignmentUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+  employees AssignmentEmployee[]
+  auditLogs AssignmentAuditLog[]
+
+  @@index([organizationId, status, dueDate])
+  @@index([organizationId, supervisorId])
+  @@map("assignments")
+}
+
+model AssignmentEmployee {
+  id           String   @id @default(uuid()) @db.Uuid
+  assignmentId String   @map("assignment_id") @db.Uuid
+  employeeId   String   @map("employee_id") @db.Uuid
+  assignedById String   @map("assigned_by_id") @db.Uuid
+  assignedAt   DateTime @default(now()) @map("assigned_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  employee User @relation("AssignmentEmployeeUser", fields: [employeeId], references: [id], onDelete: Restrict)
+  assignedBy User @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@unique([assignmentId, employeeId])
+  @@index([employeeId, assignmentId])
+  @@map("assignment_employees")
+}
+
+model AssignmentAuditLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  assignmentId String   @map("assignment_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  actorUserId  String?  @map("actor_user_id") @db.Uuid
+  action       String   @db.VarChar(60)
+  previousValues Json?  @map("previous_values")
+  newValues    Json?    @map("new_values")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  actor User? @relation("AssignmentAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([assignmentId, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("assignment_audit_logs")
 }
 
 model PasswordResetToken {

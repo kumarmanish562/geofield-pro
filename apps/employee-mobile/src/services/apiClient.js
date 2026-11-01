@@ -160,3 +160,16 @@ async function saveSession(data) {
 export function getApiBaseUrl() {
   return API_BASE_URL;
 }
+
+export async function getMyAssignments(params = {}) {
+  const query = new URLSearchParams({
+    page: "1",
+    pageSize: "50",
+    ...params,
+  }).toString();
+  return request(`/me/assignments?${query}`);
+}
+
+export async function getMyAssignment(id) {
+  return request(`/me/assignments/${id}`);
+}
