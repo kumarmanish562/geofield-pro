@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - "feature/**"
+      - "phase-*"
   pull_request:
     branches:
       - main
@@ -65,6 +66,15 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://geofield:test_password@localhost:5432/geofield_test?schema=public
+      JWT_ISSUER: geofield-pro-api
+      JWT_AUDIENCE: geofield-pro-tests
+      JWT_ACCESS_TOKEN_TTL_SECONDS: 900
+      JWT_SECRET: test-only-jwt-secret-with-at-least-32-characters
+      ARGON2_MEMORY_COST: 19456
+      ARGON2_TIME_COST: 2
+      ARGON2_PARALLELISM: 1
+      REFRESH_TOKEN_TTL_DAYS: 7
+      AUTH_COOKIE_NAME: geofield_refresh
 
     steps:
       - name: Checkout repository
@@ -86,6 +96,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm --filter @geofield/api db:generate
+
+      - name: Deploy database migrations
+        run: pnpm --filter @geofield/api db:deploy
 
       - name: Verify PostGIS through Prisma
         working-directory: apps/api
