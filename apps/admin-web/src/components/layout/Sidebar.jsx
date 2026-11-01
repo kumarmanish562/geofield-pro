@@ -57,6 +57,14 @@ export function Sidebar({ open, onClose }) {
             <span>{label}</span>
           </NavLink>
         ))}
+        <NavLink
+          to="/teams"
+          onClick={onClose}
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
+          <Users size={18} />
+          <span>Teams</span>
+        </NavLink>
         <p className="nav-label nav-label-spaced">System</p>
         <NavLink
           to="/reports"

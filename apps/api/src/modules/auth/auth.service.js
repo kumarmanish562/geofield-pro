@@ -410,6 +410,9 @@ export async function registerUser({
           role: "EMPLOYEE",
           status: "ACTIVE",
           passwordChangedAt: new Date(),
+          employeeProfile: {
+            create: { organizationId },
+          },
         },
         select: {
           id: true,

@@ -1,9 +1,5 @@
 import { ModulePlaceholderPage } from "./ModulePlaceholderPage.jsx";
 const pages = {
-  EmployeesPage: [
-    "Employees",
-    "Manage your field workforce and organization access.",
-  ],
   AttendancePage: ["Attendance", "Track team availability and work sessions."],
   AssignmentsPage: ["Assignments", "Plan and monitor field work."],
   VillagesPage: ["Villages", "Manage village boundaries and spatial data."],
@@ -28,7 +24,6 @@ export const modulePages = Object.fromEntries(
   ]),
 );
 export const {
-  EmployeesPage,
   AttendancePage,
   AssignmentsPage,
   VillagesPage,
