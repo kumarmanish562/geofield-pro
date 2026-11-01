@@ -26,6 +26,8 @@
     "db:generate": "pnpm --filter @geofield/api db:generate",
     "db:migrate": "pnpm --filter @geofield/api db:migrate",
     "db:deploy": "pnpm --filter @geofield/api db:deploy",
+    "db:status": "pnpm --filter @geofield/api db:status",
+    "db:seed": "pnpm --filter @geofield/api db:seed",
     "db:studio": "pnpm --filter @geofield/api db:studio"
   },
   "devDependencies": {
