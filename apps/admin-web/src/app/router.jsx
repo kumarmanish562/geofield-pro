@@ -18,6 +18,7 @@ import { TeamsPage } from "../pages/TeamsPage.jsx";
 import { AssignmentsPage as AssignmentDirectoryPage } from "../pages/AssignmentsPage.jsx";
 import { AssignmentDetailsPage } from "../pages/AssignmentDetailsPage.jsx";
 import { AttendancePage as AttendanceDashboardPage } from "../pages/AttendancePage.jsx";
+import { LiveMapPage } from "../pages/LiveMapPage.jsx";
 
 export function AppRouter() {
   return (
@@ -35,6 +36,7 @@ export function AppRouter() {
           <Route path="/assignments" element={<AssignmentDirectoryPage />} />
           <Route path="/assignments/:id" element={<AssignmentDetailsPage />} />
           <Route path="/villages" element={<VillagesPage />} />
+          <Route path="/live-map" element={<LiveMapPage />} />
           <Route path="/surveys" element={<SurveysPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/reports" element={<ReportsPage />} />

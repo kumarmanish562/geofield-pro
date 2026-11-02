@@ -13,9 +13,12 @@
     "@vitejs/plugin-react": "^5.0.4",
     "axios": "^1.21.0",
     "lucide-react": "^1.66.0",
+    "leaflet": "^1.9.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.1",
+    "react-leaflet": "^5.0.0",
+    "socket.io-client": "^4.8.1",
     "react-router-dom": "^7.18.5",
     "vite": "^7.1.12"
   },

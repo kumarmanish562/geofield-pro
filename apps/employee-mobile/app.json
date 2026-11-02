@@ -13,9 +13,18 @@
     },
     "android": {
       "package": "com.geofieldpro.employee",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "backgroundColor": "#123c35"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "GeoField Pro uses your location only during an authorized tracking session."
+        }
+      ]
+    ]
   }
 }

@@ -543,9 +543,55 @@ td span {
   background: #17352f;
   cursor: pointer;
 }
+.live-map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+}
+.map-panel {
+  min-height: 560px;
+  padding: 0;
+  overflow: hidden;
+}
+.live-map {
+  width: 100%;
+  height: 560px;
+}
+.location-sidebar {
+  max-height: 560px;
+  overflow-y: auto;
+}
+.location-sidebar > input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 11px;
+  border: 1px solid #d2ded4;
+  border-radius: 7px;
+}
+.location-item {
+  padding: 13px 0;
+  border-top: 1px solid #edf1ed;
+}
+.location-item strong,
+.location-item span {
+  display: block;
+}
+.location-item span {
+  margin-top: 4px;
+  color: #71837a;
+  font-size: 0.75rem;
+}
 .metric-card {
   min-height: 165px;
   padding: 20px;
+  .live-map-layout {
+    grid-template-columns: 1fr;
+  }
+  .map-panel,
+  .live-map {
+    min-height: 420px;
+    height: 420px;
+  }
 }
 .metric-icon {
   display: grid;
