@@ -492,6 +492,57 @@ td span {
   font-size: 0.75rem;
   font-weight: 700;
 }
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.metric-label {
+  display: block;
+  color: #8a9b92;
+  font-size: 0.72rem;
+}
+.metric-value {
+  display: block;
+  margin-top: 10px;
+  color: #17352f;
+  font:
+    700 1.8rem "Space Grotesk",
+    sans-serif;
+}
+.correction-panel {
+  margin-top: 18px;
+}
+.correction-panel h3 {
+  margin-top: 0;
+}
+.correction-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid #edf1ed;
+}
+.correction-row strong,
+.correction-row span {
+  display: block;
+}
+.correction-row span {
+  margin-top: 4px;
+  color: #71837a;
+  font-size: 0.78rem;
+}
+.correction-row button {
+  margin-left: 8px;
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: #17352f;
+  cursor: pointer;
+}
 .metric-card {
   min-height: 165px;
   padding: 20px;
@@ -748,6 +799,13 @@ td span {
     .toolbar {
       align-items: stretch;
       flex-direction: column;
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .correction-row {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
     .details-grid {
       grid-template-columns: 1fr;

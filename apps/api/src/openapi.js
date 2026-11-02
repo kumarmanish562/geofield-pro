@@ -149,9 +149,10 @@ const openApiDocument = {
           "200": { description: "Authenticated user returned." },
           "401": { $ref: "#/components/schemas/ErrorResponse" }
         }
-      },
+      }
+    },
 
-      [`${env.API_PREFIX}/workforce/employees`]: {
+    [`${env.API_PREFIX}/workforce/employees`]: {
         get: {
           summary: "List organization workforce records",
           security: [{ BearerAuth: [] }],
@@ -222,8 +223,34 @@ const openApiDocument = {
       },
       [`${env.API_PREFIX}/me/assignments`]: {
         get: { summary: "List assignments for the authenticated employee", security: [{ BearerAuth: [] }], responses: { "200": { description: "Published employee assignments returned." } } }
-      }
-    }
+      },
+      [`${env.API_PREFIX}/attendance/check-in`]: {
+        post: { summary: "Start the authenticated employee attendance session", security: [{ BearerAuth: [] }], parameters: [{ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }], responses: { "201": { description: "Attendance started." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/attendance/break/start`]: {
+        post: { summary: "Start a break", security: [{ BearerAuth: [] }], responses: { "200": { description: "Break started." } } }
+      },
+      [`${env.API_PREFIX}/attendance/break/end`]: {
+        post: { summary: "End the active break", security: [{ BearerAuth: [] }], responses: { "200": { description: "Break ended." } } }
+      },
+      [`${env.API_PREFIX}/attendance/check-out`]: {
+        post: { summary: "Complete the authenticated employee attendance session", security: [{ BearerAuth: [] }], responses: { "200": { description: "Attendance completed." } } }
+      },
+      [`${env.API_PREFIX}/attendance/current`]: {
+        get: { summary: "Get the current employee attendance session", security: [{ BearerAuth: [] }], responses: { "200": { description: "Current attendance or null." } } }
+      },
+      [`${env.API_PREFIX}/attendance/history`]: {
+        get: { summary: "List authenticated employee attendance history", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated attendance history." } } }
+      },
+      [`${env.API_PREFIX}/attendance/sync`]: {
+        post: { summary: "Synchronize ordered offline attendance events", security: [{ BearerAuth: [] }], responses: { "200": { description: "Each event is reported as processed or rejected." } } }
+      },
+      [`${env.API_PREFIX}/admin/attendance`]: {
+        get: { summary: "List organization attendance", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated organization attendance." } } }
+      },
+      [`${env.API_PREFIX}/admin/attendance/summary`]: {
+        get: { summary: "Get today's attendance summary", security: [{ BearerAuth: [] }], responses: { "200": { description: "Attendance summary." } } }
+      },
   }
 };
 
