@@ -93,6 +93,21 @@ enum CorrectionStatus {
   @@map("attendance_correction_status")
 }
 
+enum VillageStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("village_status")
+}
+
+enum VillageImportStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("village_import_status")
+}
+
 enum TrackingSessionStatus {
   ACTIVE
   ENDED
@@ -120,6 +135,8 @@ model Organization {
   attendanceAudits AttendanceAuditLog[]
   trackingSessions TrackingSession[]
   locationObservations LocationObservation[]
+  villages       Village[]
+  villageImports VillageImport[]
 
   @@index([status])
   @@map("organizations")
@@ -166,6 +183,9 @@ model User {
   trackingSessions TrackingSession[] @relation("TrackingSessionEmployee")
   startedTrackingSessions TrackingSession[] @relation("TrackingSessionStartedBy")
   locationObservations LocationObservation[]
+  createdVillages Village[] @relation("VillageCreatedBy")
+  updatedVillages Village[] @relation("VillageUpdatedBy")
+  villageImports VillageImport[]
 
   @@index([organizationId, status])
   @@index([organizationId, role])
@@ -442,6 +462,53 @@ model LocationObservation {
   @@index([employeeId, capturedAt])
   @@index([sessionId, capturedAt])
   @@map("location_observations")
+}
+
+model Village {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  name           String        @db.VarChar(200)
+  code           String        @db.VarChar(80)
+  state          String?       @db.VarChar(120)
+  district       String?       @db.VarChar(120)
+  taluka         String?       @db.VarChar(120)
+  metadata       Json          @default("{}")
+  status         VillageStatus @default(ACTIVE)
+  createdById    String        @map("created_by_id") @db.Uuid
+  updatedById    String        @map("updated_by_id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  createdBy    User         @relation("VillageCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  updatedBy    User         @relation("VillageUpdatedBy", fields: [updatedById], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, code])
+  @@index([organizationId, status])
+  @@index([organizationId, district, taluka])
+  @@map("villages")
+}
+
+model VillageImport {
+  id                 String             @id @default(uuid()) @db.Uuid
+  organizationId     String             @map("organization_id") @db.Uuid
+  initiatedById      String             @map("initiated_by_id") @db.Uuid
+  filename            String             @db.VarChar(255)
+  format              String             @db.VarChar(30)
+  status              VillageImportStatus @default(PROCESSING)
+  totalFeatures       Int                @default(0) @map("total_features")
+  acceptedFeatures    Int                @default(0) @map("accepted_features")
+  rejectedFeatures    Int                @default(0) @map("rejected_features")
+  errorSummary       Json               @default("[]") @map("error_summary")
+  startedAt           DateTime           @default(now()) @map("started_at")
+  completedAt         DateTime?          @map("completed_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  initiatedBy  User         @relation(fields: [initiatedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, startedAt])
+  @@index([organizationId, status])
+  @@map("village_imports")
 }
 
 model PasswordResetToken {

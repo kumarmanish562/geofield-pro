@@ -10,6 +10,7 @@ import attendanceRouter from "./attendance.routes.js";
 import adminAttendanceRouter from "./admin-attendance.routes.js";
 import locationsRouter from "./locations.routes.js";
 import adminLocationsRouter from "./admin-locations.routes.js";
+import villagesRouter from "./villages.routes.js";
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use("/attendance", attendanceRouter);
 router.use("/admin/attendance", adminAttendanceRouter);
 router.use("/locations", locationsRouter);
 router.use("/admin/locations", adminLocationsRouter);
+router.use("/villages", villagesRouter);
 
 export default router;

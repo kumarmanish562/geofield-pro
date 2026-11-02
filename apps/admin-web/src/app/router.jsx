@@ -8,8 +8,8 @@ import {
   ReportsPage,
   SettingsPage,
   SurveysPage,
-  VillagesPage,
 } from "../pages/modulePages.jsx";
+import { VillagesPage } from "../pages/VillagesPage.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
 import { NotFoundPage } from "../pages/NotFoundPage.jsx";
 import { EmployeesPage } from "../pages/EmployeesPage.jsx";
