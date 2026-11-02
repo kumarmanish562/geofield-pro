@@ -304,6 +304,32 @@ const openApiDocument = {
           security: [{ BearerAuth: [] }],
           responses: { "200": { description: "Tracking session ended." } }
         }
+      },
+      [`${env.API_PREFIX}/villages`]: {
+        get: { summary: "List authorized villages", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated villages." } } },
+        post: { summary: "Create a village", security: [{ BearerAuth: [] }], responses: { "201": { description: "Village created." }, "403": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/villages/{id}`]: {
+        get: { summary: "Get a village and boundary metadata", security: [{ BearerAuth: [] }], responses: { "200": { description: "Village returned." } } },
+        patch: { summary: "Update village metadata", security: [{ BearerAuth: [] }], responses: { "200": { description: "Village updated." } } }
+      },
+      [`${env.API_PREFIX}/villages/imports/geojson`]: {
+        post: { summary: "Import validated GeoJSON village boundaries", security: [{ BearerAuth: [] }], responses: { "201": { description: "Import result returned." }, "400": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/villages/imports`]: {
+        get: { summary: "List village import history", security: [{ BearerAuth: [] }], responses: { "200": { description: "Import history returned." } } }
+      },
+      [`${env.API_PREFIX}/villages/{id}/export`]: {
+        get: { summary: "Export one village boundary as GeoJSON", security: [{ BearerAuth: [] }], responses: { "200": { description: "GeoJSON Feature returned." } } }
+      },
+      [`${env.API_PREFIX}/villages/export`]: {
+        get: { summary: "Export authorized village boundaries", security: [{ BearerAuth: [] }], responses: { "200": { description: "GeoJSON FeatureCollection returned." } } }
+      },
+      [`${env.API_PREFIX}/villages/spatial/point`]: {
+        get: { summary: "Find villages covering a WGS84 point", security: [{ BearerAuth: [] }], responses: { "200": { description: "Matching villages returned." } } }
+      },
+      [`${env.API_PREFIX}/villages/spatial/intersections`]: {
+        post: { summary: "Find villages intersecting a GeoJSON geometry", security: [{ BearerAuth: [] }], responses: { "200": { description: "Intersecting villages returned." } } }
       }
   }
 };
