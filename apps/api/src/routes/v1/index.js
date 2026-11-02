@@ -6,6 +6,8 @@ import authRouter from "./auth.routes.js";
 import workforceRouter from "./workforce.routes.js";
 import assignmentsRouter from "./assignments.routes.js";
 import myAssignmentsRouter from "./my-assignments.routes.js";
+import attendanceRouter from "./attendance.routes.js";
+import adminAttendanceRouter from "./admin-attendance.routes.js";
 
 const router = Router();
 
@@ -15,5 +17,7 @@ router.use("/auth", authRouter);
 router.use("/workforce", workforceRouter);
 router.use("/assignments", assignmentsRouter);
 router.use("/me/assignments", myAssignmentsRouter);
+router.use("/attendance", attendanceRouter);
+router.use("/admin/attendance", adminAttendanceRouter);
 
 export default router;

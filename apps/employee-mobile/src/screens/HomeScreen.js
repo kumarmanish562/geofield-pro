@@ -30,9 +30,9 @@ export function HomeScreen({ navigation }) {
         <Text style={ui.muted}>{today}</Text>
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Today&apos;s attendance</Text>
-          <Text style={styles.cardTitle}>Unavailable</Text>
+          <Text style={styles.cardTitle}>Open attendance</Text>
           <Text style={ui.muted}>
-            Attendance endpoints are not available in the current API.
+            Check in, manage breaks, and check out from the attendance tab.
           </Text>
         </View>
         <Text style={styles.section}>Quick actions</Text>

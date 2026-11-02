@@ -59,6 +59,40 @@ enum AssignmentStatus {
   @@map("assignment_status")
 }
 
+enum AttendanceStatus {
+  WORKING
+  ON_BREAK
+  COMPLETED
+
+  @@map("attendance_status")
+}
+
+enum AttendanceEventType {
+  CHECK_IN
+  BREAK_START
+  BREAK_END
+  CHECK_OUT
+  CORRECTION_APPLIED
+
+  @@map("attendance_event_type")
+}
+
+enum AttendanceEventStatus {
+  PENDING
+  PROCESSED
+  REJECTED
+
+  @@map("attendance_event_status")
+}
+
+enum CorrectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("attendance_correction_status")
+}
+
 model Organization {
   id     String             @id @default(uuid()) @db.Uuid
   name   String             @db.VarChar(200)
@@ -74,6 +108,9 @@ model Organization {
   employeeProfiles EmployeeProfile[]
   assignments      Assignment[]
   assignmentAudits AssignmentAuditLog[]
+  attendances      Attendance[]
+  correctionRequests AttendanceCorrectionRequest[]
+  attendanceAudits AttendanceAuditLog[]
 
   @@index([status])
   @@map("organizations")
@@ -112,6 +149,11 @@ model User {
   assignmentMemberships AssignmentEmployee[] @relation("AssignmentEmployeeUser")
   assignedAssignmentEmployees AssignmentEmployee[] @relation("AssignmentAssignedBy")
   assignmentAudits AssignmentAuditLog[] @relation("AssignmentAuditActor")
+  attendances Attendance[]
+  attendanceEvents AttendanceEvent[] @relation("AttendanceEventEmployee")
+  correctionRequests AttendanceCorrectionRequest[] @relation("AttendanceCorrectionEmployee")
+  attendanceReviews AttendanceCorrectionRequest[] @relation("AttendanceCorrectionReviewer")
+  attendanceAudits AttendanceAuditLog[] @relation("AttendanceAuditActor")
 
   @@index([organizationId, status])
   @@index([organizationId, role])
@@ -236,6 +278,113 @@ model AssignmentAuditLog {
   @@index([assignmentId, createdAt])
   @@index([organizationId, createdAt])
   @@map("assignment_audit_logs")
+}
+
+model Attendance {
+  id               String           @id @default(uuid()) @db.Uuid
+  organizationId   String           @map("organization_id") @db.Uuid
+  employeeId       String           @map("employee_id") @db.Uuid
+  attendanceDate   DateTime         @map("attendance_date") @db.Date
+  status           AttendanceStatus
+  checkedInAt     DateTime?        @map("checked_in_at")
+  checkedOutAt    DateTime?        @map("checked_out_at")
+  totalBreakSeconds Int             @default(0) @map("total_break_seconds")
+  version          Int              @default(1)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  events AttendanceEvent[]
+  breaks AttendanceBreak[]
+  corrections AttendanceCorrectionRequest[]
+  audits AttendanceAuditLog[]
+
+  @@unique([employeeId, attendanceDate])
+  @@index([organizationId, attendanceDate, status])
+  @@index([employeeId, attendanceDate])
+  @@map("attendances")
+}
+
+model AttendanceBreak {
+  id           String   @id @default(uuid()) @db.Uuid
+  attendanceId String   @map("attendance_id") @db.Uuid
+  startedAt   DateTime @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+  durationSeconds Int? @map("duration_seconds")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  @@index([attendanceId, startedAt])
+  @@map("attendance_breaks")
+}
+
+model AttendanceEvent {
+  id               String                @id @default(uuid()) @db.Uuid
+  attendanceId     String                @map("attendance_id") @db.Uuid
+  employeeId       String                @map("employee_id") @db.Uuid
+  eventType        AttendanceEventType   @map("event_type")
+  serverOccurredAt DateTime              @map("server_occurred_at")
+  clientOccurredAt DateTime?             @map("client_occurred_at")
+  receivedAt       DateTime              @default(now()) @map("received_at")
+  processingStatus AttendanceEventStatus  @default(PROCESSED) @map("processing_status")
+  idempotencyKey   String?               @unique @map("idempotency_key") @db.VarChar(160)
+  clientEventId    String?               @unique @map("client_event_id") @db.VarChar(160)
+  metadata         Json?
+  createdAt        DateTime              @default(now()) @map("created_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  employee User @relation("AttendanceEventEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId, createdAt])
+  @@index([attendanceId, createdAt])
+  @@map("attendance_events")
+}
+
+model AttendanceCorrectionRequest {
+  id                  String           @id @default(uuid()) @db.Uuid
+  organizationId      String           @map("organization_id") @db.Uuid
+  attendanceId        String           @map("attendance_id") @db.Uuid
+  employeeId          String           @map("employee_id") @db.Uuid
+  requestedCheckInAt  DateTime?        @map("requested_check_in_at")
+  requestedCheckOutAt DateTime?        @map("requested_check_out_at")
+  reason              String           @db.VarChar(1000)
+  status              CorrectionStatus @default(PENDING)
+  reviewedById        String?          @map("reviewed_by_id") @db.Uuid
+  reviewedAt          DateTime?        @map("reviewed_at")
+  reviewComment       String?          @map("review_comment") @db.VarChar(1000)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  employee User @relation("AttendanceCorrectionEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+  reviewedBy User? @relation("AttendanceCorrectionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([employeeId, createdAt])
+  @@map("attendance_correction_requests")
+}
+
+model AttendanceAuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  attendanceId   String   @map("attendance_id") @db.Uuid
+  actorId        String?  @map("actor_id") @db.Uuid
+  action         String   @db.VarChar(80)
+  beforeState    Json?    @map("before_state")
+  afterState     Json?    @map("after_state")
+  reason         String?  @db.VarChar(1000)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  attendance Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  actor User? @relation("AttendanceAuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([attendanceId, createdAt])
+  @@map("attendance_audit_logs")
 }
 
 model PasswordResetToken {

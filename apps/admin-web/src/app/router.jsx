@@ -5,9 +5,6 @@ import { LoginPage } from "../features/auth/LoginPage.jsx";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute.jsx";
 import {
   AnalyticsPage,
-  AssignmentsPage,
-  AttendancePage,
-  LiveMapPage,
   ReportsPage,
   SettingsPage,
   SurveysPage,
@@ -20,6 +17,7 @@ import { EmployeeDetailsPage } from "../pages/EmployeeDetailsPage.jsx";
 import { TeamsPage } from "../pages/TeamsPage.jsx";
 import { AssignmentsPage as AssignmentDirectoryPage } from "../pages/AssignmentsPage.jsx";
 import { AssignmentDetailsPage } from "../pages/AssignmentDetailsPage.jsx";
+import { AttendancePage as AttendanceDashboardPage } from "../pages/AttendancePage.jsx";
 
 export function AppRouter() {
   return (
@@ -33,11 +31,10 @@ export function AppRouter() {
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/employees/:userId" element={<EmployeeDetailsPage />} />
           <Route path="/teams" element={<TeamsPage />} />
-          <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/attendance" element={<AttendanceDashboardPage />} />
           <Route path="/assignments" element={<AssignmentDirectoryPage />} />
           <Route path="/assignments/:id" element={<AssignmentDetailsPage />} />
           <Route path="/villages" element={<VillagesPage />} />
-          <Route path="/live-map" element={<LiveMapPage />} />
           <Route path="/surveys" element={<SurveysPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/reports" element={<ReportsPage />} />

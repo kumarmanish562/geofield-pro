@@ -4,6 +4,7 @@ import { ApiError } from "./apiErrors.js";
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1";
 const REFRESH_TOKEN_KEY = "geofield.refresh_token";
+const ATTENDANCE_QUEUE_KEY = "geofield.attendance_queue";
 
 let accessToken = null;
 let refreshPromise = null;
@@ -159,6 +160,93 @@ async function saveSession(data) {
 
 export function getApiBaseUrl() {
   return API_BASE_URL;
+}
+
+function createEventId() {
+  return `mobile-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+export async function getAttendanceCurrent() {
+  return request("/attendance/current");
+}
+
+export async function getAttendanceHistory() {
+  return request("/attendance/history?page=1&pageSize=50");
+}
+
+export async function submitAttendanceEvent(eventType, metadata = {}) {
+  const event = {
+    idempotencyKey: createEventId(),
+    clientEventId: createEventId(),
+    eventType,
+    clientOccurredAt: new Date().toISOString(),
+    metadata,
+  };
+  const path =
+    eventType === "CHECK_IN"
+      ? "/attendance/check-in"
+      : eventType === "BREAK_START"
+        ? "/attendance/break/start"
+        : eventType === "BREAK_END"
+          ? "/attendance/break/end"
+          : "/attendance/check-out";
+  return request(path, { method: "POST", body: JSON.stringify(event) }, false);
+}
+
+export async function queueAttendanceEvent(eventType, metadata = {}) {
+  const queued = JSON.parse(
+    (await SecureStore.getItemAsync(ATTENDANCE_QUEUE_KEY)) ?? "[]",
+  );
+  queued.push({
+    clientEventId: createEventId(),
+    eventType,
+    clientOccurredAt: new Date().toISOString(),
+    metadata,
+  });
+  await SecureStore.setItemAsync(ATTENDANCE_QUEUE_KEY, JSON.stringify(queued));
+  return queued.length;
+}
+
+export async function getPendingAttendanceEvents() {
+  return JSON.parse(
+    (await SecureStore.getItemAsync(ATTENDANCE_QUEUE_KEY)) ?? "[]",
+  );
+}
+
+export async function synchronizeAttendanceEvents() {
+  const queued = await getPendingAttendanceEvents();
+  if (!queued.length) return { results: [] };
+  const response = await request(
+    "/attendance/sync",
+    { method: "POST", body: JSON.stringify({ events: queued }) },
+    false,
+  );
+  const rejected = queued.filter(
+    (event) =>
+      response.data.results.find(
+        (result) => result.clientEventId === event.clientEventId,
+      )?.status === "REJECTED",
+  );
+  const processedIds = new Set(
+    response.data.results
+      .filter((result) => result.status === "PROCESSED")
+      .map((result) => result.clientEventId),
+  );
+  await SecureStore.setItemAsync(
+    ATTENDANCE_QUEUE_KEY,
+    JSON.stringify([
+      ...rejected,
+      ...queued.filter((event) => !processedIds.has(event.clientEventId)),
+    ]),
+  );
+  return response.data;
+}
+
+export async function requestAttendanceCorrection(attendanceId, data) {
+  return request(`/attendance/${attendanceId}/corrections`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function getMyAssignments(params = {}) {

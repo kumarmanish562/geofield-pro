@@ -35,6 +35,7 @@ app.use(
       "Content-Type",
       "Authorization",
       "X-GeoField-Request",
+      "Idempotency-Key",
     ],
   })
 );
