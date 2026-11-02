@@ -1,6 +1,7 @@
 import { env } from "./config/env.js";
 import app from "./app.js";
 import { prisma } from "./database/prisma.js";
+import { attachSocketServer } from "./sockets/socket-server.js";
 
 async function startServer() {
   await prisma.$connect();
@@ -16,6 +17,7 @@ async function startServer() {
       })
     );
   });
+  attachSocketServer(server);
 
   return server;
 }

@@ -4,10 +4,14 @@ export function errorHandler(error, req, res, next) {
   }
 
   const status =
-    Number.isInteger(error.status) &&
-    error.status >= 400 &&
-    error.status < 600
-      ? error.status
+    Number.isInteger(error.statusCode) &&
+    error.statusCode >= 400 &&
+    error.statusCode < 600
+      ? error.statusCode
+      : Number.isInteger(error.status) &&
+          error.status >= 400 &&
+          error.status < 600
+        ? error.status
       : 500;
 
   const isProduction = process.env.NODE_ENV === "production";

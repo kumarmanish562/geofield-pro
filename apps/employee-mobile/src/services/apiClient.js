@@ -249,6 +249,21 @@ export async function requestAttendanceCorrection(attendanceId, data) {
   });
 }
 
+export async function getTrackingSession() {
+  return request("/locations/session/current");
+}
+
+export async function submitLocationObservation(data) {
+  return request(
+    "/locations",
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    },
+    false,
+  );
+}
+
 export async function getMyAssignments(params = {}) {
   const query = new URLSearchParams({
     page: "1",

@@ -251,6 +251,60 @@ const openApiDocument = {
       [`${env.API_PREFIX}/admin/attendance/summary`]: {
         get: { summary: "Get today's attendance summary", security: [{ BearerAuth: [] }], responses: { "200": { description: "Attendance summary." } } }
       },
+      [`${env.API_PREFIX}/locations`]: {
+        post: {
+          summary: "Submit an authorized employee location observation",
+          security: [{ BearerAuth: [] }],
+          responses: { "201": { description: "Location persisted." }, "403": { $ref: "#/components/schemas/ErrorResponse" } }
+        }
+      },
+      [`${env.API_PREFIX}/locations/me`]: {
+        get: {
+          summary: "List the authenticated employee location history",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Paginated location history." } }
+        }
+      },
+      [`${env.API_PREFIX}/locations/session/current`]: {
+        get: {
+          summary: "Get the authenticated employee active tracking session",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Active session or null." } }
+        }
+      },
+      [`${env.API_PREFIX}/admin/locations/latest`]: {
+        get: {
+          summary: "List the latest location for each active employee",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Organization-scoped latest locations." } }
+        }
+      },
+      [`${env.API_PREFIX}/admin/locations/history`]: {
+        get: {
+          summary: "List organization location history",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Paginated location history." } }
+        }
+      },
+      [`${env.API_PREFIX}/admin/locations/sessions`]: {
+        get: {
+          summary: "List organization tracking sessions",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Tracking sessions returned." } }
+        },
+        post: {
+          summary: "Authorize an employee tracking session",
+          security: [{ BearerAuth: [] }],
+          responses: { "201": { description: "Tracking session started." } }
+        }
+      },
+      [`${env.API_PREFIX}/admin/locations/sessions/{sessionId}/end`]: {
+        post: {
+          summary: "End an employee tracking session",
+          security: [{ BearerAuth: [] }],
+          responses: { "200": { description: "Tracking session ended." } }
+        }
+      }
   }
 };
 
