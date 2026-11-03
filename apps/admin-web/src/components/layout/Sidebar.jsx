@@ -18,11 +18,11 @@ import { useAuth } from "../../features/auth/AuthContext.jsx";
 
 const navigation = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/live-map", label: "Live map", icon: Map, live: true },
   { to: "/employees", label: "Employees", icon: Users },
   { to: "/attendance", label: "Attendance", icon: CalendarCheck },
-  { to: "/assignments", label: "Assignments", icon: ClipboardList },
   { to: "/villages", label: "Villages", icon: MapPinned },
-  { to: "/live-map", label: "Live map", icon: Map },
+  { to: "/assignments", label: "Assignments", icon: ClipboardList },
   { to: "/surveys", label: "Surveys", icon: FileText },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/notifications", label: "Notifications", icon: Bell },
@@ -36,7 +36,7 @@ export function Sidebar({ open, onClose }) {
         <div className="brand-mark brand-mark-small">GF</div>
         <div>
           <strong>GeoField</strong>
-          <span>PRO</span>
+          <span>PRO · ENTERPRISE GIS</span>
         </div>
         <button
           className="icon-button mobile-only"
@@ -46,9 +46,13 @@ export function Sidebar({ open, onClose }) {
           <X size={20} />
         </button>
       </div>
+      <div className="sidebar-jurisdiction">
+        <span>ORGANIZATION</span>
+        <strong>Workspace</strong>
+      </div>
       <nav className="sidebar-nav" aria-label="Main navigation">
         <p className="nav-label">Workspace</p>
-        {navigation.map(({ to, label, icon: Icon }) => (
+        {navigation.map(({ to, label, icon: Icon, live }) => (
           <NavLink
             key={to}
             to={to}
@@ -57,8 +61,10 @@ export function Sidebar({ open, onClose }) {
           >
             <Icon size={18} strokeWidth={1.8} />
             <span>{label}</span>
+            {live && <small className="nav-live-badge">LIVE</small>}
           </NavLink>
         ))}
+        <p className="nav-label nav-label-spaced">System</p>
         <NavLink
           to="/teams"
           onClick={onClose}
@@ -67,7 +73,6 @@ export function Sidebar({ open, onClose }) {
           <Users size={18} />
           <span>Teams</span>
         </NavLink>
-        <p className="nav-label nav-label-spaced">System</p>
         <NavLink
           to="/reports"
           onClick={onClose}

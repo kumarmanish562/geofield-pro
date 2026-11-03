@@ -11,7 +11,7 @@ const titles = {
   "/villages": ["Villages", "Manage village boundaries and spatial data."],
   "/live-map": [
     "Live map",
-    "A real-time field overview will be available in a later GIS phase.",
+    "Monitor authorized employee locations and observation freshness.",
   ],
   "/surveys": ["Surveys", "Review field survey submissions."],
   "/analytics": ["Analytics", "Understand progress across your organization."],

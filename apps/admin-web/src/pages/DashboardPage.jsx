@@ -83,7 +83,7 @@ export function DashboardPage() {
     [surveys],
   );
   return (
-    <>
+    <div className="dashboard-page">
       <PageHeader
         title="Operations overview"
         description="Monitor field activity, survey quality, and review workload."
@@ -133,8 +133,8 @@ export function DashboardPage() {
                   center={[Number(survey.latitude), Number(survey.longitude)]}
                   radius={7}
                   pathOptions={{
-                    color: "#2563eb",
-                    fillColor: "#60a5fa",
+                    color: "#087c72",
+                    fillColor: "#30c5a7",
                     fillOpacity: 0.8,
                   }}
                 >
@@ -238,6 +238,6 @@ export function DashboardPage() {
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }
