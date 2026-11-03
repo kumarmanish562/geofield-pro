@@ -45,6 +45,10 @@ export function HomeScreen({ navigation }) {
             title="Open map"
             onPress={() => navigation.getParent()?.navigate("MapTab")}
           />
+          <Action
+            title="Offline sync"
+            onPress={() => navigation.navigate("OfflineSync")}
+          />
         </View>
         <Text style={styles.section}>Recent assignments</Text>
         <EmptyState

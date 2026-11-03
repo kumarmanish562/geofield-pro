@@ -37,6 +37,7 @@ export const reviewSchema = z.object({
   }
 });
 export const attachmentSchema = z.object({
+  clientAttachmentId: z.string().uuid().optional(),
   originalFileName: z.string().trim().min(1).max(255),
   mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
   fileSize: z.coerce.number().int().positive().max(10 * 1024 * 1024),

@@ -27,7 +27,11 @@ export async function createUpload(actor, surveyId, data) {
   await ownedSurvey(actor, surveyId);
   const objectKey = `surveys/${actor.organizationId}/${surveyId}/${randomUUID()}`;
   const url = await getSignedUrl(client, new PutObjectCommand({ Bucket: env.S3_BUCKET, Key: objectKey, ContentType: data.mimeType, ContentLength: data.fileSize }), { expiresIn: 300 });
-  const attachment = await prisma.surveyAttachment.create({ data: { surveyId, uploadedBy: actor.userId, originalFileName: data.originalFileName, objectKey, bucket: env.S3_BUCKET, mimeType: data.mimeType, fileSize: data.fileSize, checksum: data.checksum ?? null } });
+  const existing = data.clientAttachmentId
+    ? await prisma.surveyAttachment.findUnique({ where: { clientAttachmentId: data.clientAttachmentId } })
+    : null;
+  if (existing) return { attachmentId: existing.id, objectKey: existing.objectKey, status: existing.uploadStatus, duplicate: true };
+  const attachment = await prisma.surveyAttachment.create({ data: { clientAttachmentId: data.clientAttachmentId ?? null, surveyId, uploadedBy: actor.userId, originalFileName: data.originalFileName, objectKey, bucket: env.S3_BUCKET, mimeType: data.mimeType, fileSize: data.fileSize, checksum: data.checksum ?? null } });
   return { attachmentId: attachment.id, objectKey, uploadUrl: url, expiresIn: 300 };
 }
 

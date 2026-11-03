@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import * as Network from "expo-network";
+import { synchronizeOfflineData } from "../services/syncEngine.js";
 
 const NetworkContext = createContext(true);
 
@@ -10,10 +11,18 @@ export function NetworkProvider({ children }) {
     let active = true;
     let subscription;
     Network.getNetworkStateAsync().then((state) => {
-      if (active) setOnline(Boolean(state.isConnected));
+      if (active) {
+        const connected = Boolean(state.isConnected);
+        setOnline(connected);
+        if (connected) synchronizeOfflineData().catch(() => {});
+      }
     });
     subscription = Network.addNetworkStateListener((state) => {
-      if (active) setOnline(Boolean(state.isConnected));
+      if (active) {
+        const connected = Boolean(state.isConnected);
+        setOnline(connected);
+        if (connected) synchronizeOfflineData().catch(() => {});
+      }
     });
     return () => {
       active = false;
