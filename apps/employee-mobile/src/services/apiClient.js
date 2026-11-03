@@ -290,6 +290,21 @@ export async function getSurveys(params = {}) {
   return request(`/surveys?${query}`);
 }
 
+export async function syncOfflineSurvey(payload) {
+  return request("/sync/surveys", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getSyncStatus() {
+  return request("/sync/status");
+}
+
+export async function getSyncHistory() {
+  return request("/sync/history?page=1&pageSize=100");
+}
+
 export async function createSurvey(data) {
   return request("/surveys", { method: "POST", body: JSON.stringify(data) });
 }
@@ -308,7 +323,7 @@ export async function completeSurveyAttachment(surveyId, attachmentId) {
   });
 }
 
-export async function uploadSurveyPhoto(surveyId, asset) {
+export async function uploadSurveyPhoto(surveyId, asset, clientAttachmentId) {
   const response = await fetch(asset.uri);
   if (!response.ok)
     throw new ApiError(
@@ -318,6 +333,7 @@ export async function uploadSurveyPhoto(surveyId, asset) {
   const blob = await response.blob();
   const mimeType = asset.mimeType ?? blob.type ?? "image/jpeg";
   const presigned = await presignSurveyAttachment(surveyId, {
+    clientAttachmentId,
     originalFileName: asset.fileName ?? `survey-${Date.now()}.jpg`,
     mimeType,
     fileSize: blob.size,

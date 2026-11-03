@@ -17,6 +17,7 @@ import { ProfileScreen } from "../screens/ProfileScreen.js";
 import { SettingsScreen } from "../screens/SettingsScreen.js";
 import { AssignmentDetailsScreen } from "../screens/AssignmentDetailsScreen.js";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen.js";
+import { SyncDashboardScreen } from "../screens/SyncDashboardScreen.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,6 +41,11 @@ function HomeStack() {
     <Stack.Navigator>
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Attendance" component={AttendanceScreen} />
+      <Stack.Screen
+        name="OfflineSync"
+        component={SyncDashboardScreen}
+        options={{ title: "Offline sync" }}
+      />
     </Stack.Navigator>
   );
 }

@@ -140,6 +140,14 @@ enum SurveyReviewStatus {
   @@map("survey_review_status")
 }
 
+enum SyncEventStatus {
+  PROCESSED
+  CONFLICT
+  FAILED
+
+  @@map("sync_event_status")
+}
+
 model Organization {
   id     String             @id @default(uuid()) @db.Uuid
   name   String             @db.VarChar(200)
@@ -215,6 +223,8 @@ model User {
   surveys        Survey[]
   uploadedSurveyAttachments SurveyAttachment[] @relation("SurveyAttachmentUploader")
   surveyReviews  SurveyReview[] @relation("SurveyReviewer")
+  syncEvents     SyncEvent[]
+  syncHistory    SyncHistory[]
 
   @@index([organizationId, status])
   @@index([organizationId, role])
@@ -559,6 +569,8 @@ model Survey {
   status          SurveyStatus @default(DRAFT)
   submittedAt     DateTime?    @map("submitted_at")
   submissionKey   String?      @unique @map("submission_key") @db.VarChar(160)
+  clientSurveyId  String?      @unique @map("client_survey_id") @db.Uuid
+  serverVersion   Int          @default(1) @map("server_version")
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 
@@ -577,6 +589,7 @@ model Survey {
 
 model SurveyAttachment {
   id               String             @id @default(uuid()) @db.Uuid
+  clientAttachmentId String?         @unique @map("client_attachment_id") @db.Uuid
   surveyId         String             @map("survey_id") @db.Uuid
   uploadedBy       String             @map("uploaded_by") @db.Uuid
   originalFileName String             @map("original_file_name") @db.VarChar(255)
@@ -593,6 +606,48 @@ model SurveyAttachment {
 
   @@index([surveyId, uploadStatus])
   @@map("survey_attachments")
+}
+
+model SyncEvent {
+  id            String          @id @default(uuid()) @db.Uuid
+  clientEventId String          @unique @map("client_event_id") @db.Uuid
+  employeeId    String          @map("employee_id") @db.Uuid
+  entityType    String          @map("entity_type") @db.VarChar(40)
+  entityId      String          @map("entity_id") @db.VarChar(80)
+  operation     String          @db.VarChar(40)
+  payloadHash   String          @map("payload_hash") @db.VarChar(128)
+  payload       Json
+  status        SyncEventStatus
+  serverTimestamp DateTime      @default(now()) @map("server_timestamp")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId, createdAt])
+  @@index([employeeId, status])
+  @@map("sync_events")
+}
+
+model SyncHistory {
+  id             String   @id @default(uuid()) @db.Uuid
+  employeeId     String   @map("employee_id") @db.Uuid
+  entityType     String   @map("entity_type") @db.VarChar(40)
+  entityId       String   @map("entity_id") @db.VarChar(80)
+  operation      String   @db.VarChar(40)
+  attemptNumber  Int      @map("attempt_number")
+  startedAt      DateTime @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  result         String?  @db.VarChar(40)
+  errorMessage   String?  @map("error_message") @db.VarChar(1000)
+  serverResponse Json?    @map("server_response")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@index([employeeId, createdAt])
+  @@index([employeeId, result])
+  @@map("sync_history")
 }
 
 model SurveyReview {

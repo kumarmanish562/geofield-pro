@@ -27,6 +27,9 @@ import {
   updateSurvey,
   uploadSurveyPhoto,
 } from "../services/apiClient.js";
+import { enqueueSurvey, getDrafts } from "../services/offlineStore";
+import { synchronizeOfflineData } from "../services/syncEngine.js";
+import { useNetwork } from "../context/NetworkContext.js";
 
 const initialForm = {
   assignmentId: "",
@@ -37,6 +40,7 @@ const initialForm = {
 };
 
 export function SurveyScreen() {
+  const online = useNetwork();
   const [data, setData] = useState(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(initialForm);
@@ -105,7 +109,15 @@ export function SurveyScreen() {
       selectionLimit: 5 - photos.length,
     });
     if (!picked.canceled)
-      setPhotos((current) => [...current, ...picked.assets].slice(0, 5));
+      setPhotos((current) =>
+        [
+          ...current,
+          ...picked.assets.map((asset) => ({
+            ...asset,
+            clientAttachmentId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          })),
+        ].slice(0, 5),
+      );
   }
 
   async function saveDraft() {
@@ -116,13 +128,20 @@ export function SurveyScreen() {
     setWorking(true);
     setError("");
     try {
-      const response = await createSurvey({
+      const payload = {
         ...form,
         ...location,
         plotNumber: form.plotNumber || null,
         notes: form.notes || null,
+      };
+      const queued = enqueueSurvey(payload);
+      setDraft({
+        ...payload,
+        id: queued.clientSurveyId,
+        clientOnly: true,
+        status: "PENDING_SYNC",
       });
-      setDraft(response.data);
+      if (online) await synchronizeOfflineData();
       setResult(null);
     } catch (reason) {
       setError(reason.message);
@@ -148,14 +167,30 @@ export function SurveyScreen() {
             setWorking(true);
             setError("");
             try {
-              await updateSurvey(draft.id, {
+              let serverSurveyId = draft.serverSurveyId;
+              if (draft.clientOnly) {
+                await synchronizeOfflineData();
+                const synced = getDrafts().find(
+                  (item) => item.client_survey_id === draft.id,
+                );
+                serverSurveyId = synced?.server_survey_id;
+              }
+              if (!serverSurveyId)
+                throw new Error(
+                  "Connect to the internet and synchronize this draft before submitting.",
+                );
+              await updateSurvey(serverSurveyId, {
                 latitude: location.latitude,
                 longitude: location.longitude,
                 gpsAccuracy: location.gpsAccuracy,
               });
               for (const photo of photos)
-                await uploadSurveyPhoto(draft.id, photo);
-              const response = await submitSurvey(draft.id);
+                await uploadSurveyPhoto(
+                  serverSurveyId,
+                  photo,
+                  photo.clientAttachmentId,
+                );
+              const response = await submitSurvey(serverSurveyId);
               setResult(response.data);
               setCreating(false);
               setDraft(null);

@@ -346,6 +346,24 @@ const openApiDocument = {
       [`${env.API_PREFIX}/surveys/{id}/submit`]: {
         post: { summary: "Submit a survey idempotently", security: [{ BearerAuth: [] }], parameters: [{ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }], responses: { "200": { description: "Server-confirmed submission returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
       },
+      [`${env.API_PREFIX}/sync/surveys`]: {
+        post: { summary: "Synchronize an offline survey idempotently", security: [{ BearerAuth: [] }], responses: { "200": { description: "Synchronization result returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/sync/attachments`]: {
+        post: { summary: "Register an offline attachment for upload", security: [{ BearerAuth: [] }], responses: { "200": { description: "Attachment upload readiness returned." } } }
+      },
+      [`${env.API_PREFIX}/sync/status`]: {
+        get: { summary: "Get employee synchronization counts", security: [{ BearerAuth: [] }], responses: { "200": { description: "Synchronization status returned." } } }
+      },
+      [`${env.API_PREFIX}/sync/history`]: {
+        get: { summary: "List employee synchronization history", security: [{ BearerAuth: [] }], responses: { "200": { description: "Synchronization history returned." } } }
+      },
+      [`${env.API_PREFIX}/sync/conflicts`]: {
+        get: { summary: "List unresolved synchronization conflicts", security: [{ BearerAuth: [] }], responses: { "200": { description: "Conflicts returned." } } }
+      },
+      [`${env.API_PREFIX}/sync/conflicts/{eventId}/resolve`]: {
+        post: { summary: "Resolve a synchronization conflict explicitly", security: [{ BearerAuth: [] }], responses: { "200": { description: "Conflict resolved." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
       [`${env.API_PREFIX}/admin/surveys/review-queue`]: {
         get: { summary: "List surveys awaiting review", security: [{ BearerAuth: [] }], responses: { "200": { description: "Review queue returned." } } }
       },
