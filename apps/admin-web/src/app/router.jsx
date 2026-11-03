@@ -17,6 +17,8 @@ import { AssignmentDetailsPage } from "../pages/AssignmentDetailsPage.jsx";
 import { AttendancePage as AttendanceDashboardPage } from "../pages/AttendancePage.jsx";
 import { LiveMapPage } from "../pages/LiveMapPage.jsx";
 import { ReportsPage as SurveyReportsPage } from "../pages/ReportsPage.jsx";
+import { NotificationsPage } from "../pages/NotificationsPage.jsx";
+import { NotificationPreferencesPage } from "../pages/NotificationPreferencesPage.jsx";
 
 export function AppRouter() {
   return (
@@ -27,6 +29,11 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route
+            path="/settings/notifications"
+            element={<NotificationPreferencesPage />}
+          />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/employees/:userId" element={<EmployeeDetailsPage />} />
           <Route path="/teams" element={<TeamsPage />} />

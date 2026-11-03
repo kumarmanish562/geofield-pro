@@ -1,6 +1,7 @@
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
 import { recordAuthEvent } from "../auth/auth.audit.js";
+import { createNotification } from "../notifications/notifications.service.js";
 
 const reviewerRoles = ["ADMIN", "SUPERVISOR", "GIS_ANALYST"];
 
@@ -88,6 +89,9 @@ async function transition(actor, id, newStatus, action, comments) {
     const updated = await tx.survey.update({ where: { id }, data: { status: newStatus }, include: includeSurvey() });
     await tx.surveyReview.create({ data: { surveyId: id, reviewedBy: actor.userId, reviewStatus: newStatus, action, previousStatus: survey.status, newStatus, reviewNotes: comments ?? null } });
     await recordAuthEvent({ client: tx, event: action === "APPROVE" ? "SURVEY_APPROVED" : action === "REJECT" ? "SURVEY_REJECTED" : "CORRECTION_REQUESTED", actorUserId: actor.userId, organizationId: actor.organizationId, targetType: "Survey", targetId: id, metadata: { previousStatus: survey.status, newStatus, comments: comments ?? null } });
+    const eventType = newStatus === "APPROVED" ? "SURVEY_APPROVED" : newStatus === "REJECTED" ? "SURVEY_REJECTED" : "SURVEY_CORRECTION_REQUESTED";
+    const reason = comments?.trim();
+    await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: survey.employee.id, actorId: actor.userId, eventType, title: eventType === "SURVEY_APPROVED" ? "Survey approved" : eventType === "SURVEY_REJECTED" ? "Survey rejected" : "Survey corrections requested", body: eventType === "SURVEY_APPROVED" ? "Your survey has been approved." : `${eventType === "SURVEY_REJECTED" ? "Your survey was rejected" : "Your survey needs corrections"}.${reason ? ` Reviewer note: ${reason.slice(0, 500)}` : ""}`, resourceType: "SURVEY", resourceId: id, actionUrl: `/surveys/${id}`, metadata: { surveyNumber: survey.surveyNumber }, dedupeKey: `survey:${id}:${eventType}:${newStatus}` });
     return updated;
   });
   return publicSurvey(result);

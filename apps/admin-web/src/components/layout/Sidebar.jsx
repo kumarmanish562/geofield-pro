@@ -11,6 +11,7 @@ import {
   Users,
   X,
   CalendarCheck,
+  Bell,
 } from "lucide-react";
 
 import { useAuth } from "../../features/auth/AuthContext.jsx";
@@ -24,6 +25,7 @@ const navigation = [
   { to: "/live-map", label: "Live map", icon: Map },
   { to: "/surveys", label: "Surveys", icon: FileText },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
 export function Sidebar({ open, onClose }) {

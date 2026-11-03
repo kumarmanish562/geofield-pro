@@ -1,5 +1,6 @@
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
+import { createNotificationsForUsers } from "../notifications/notifications.service.js";
 
 const managerRoles = ["ADMIN", "SUPERVISOR"];
 const lifecycle = {
@@ -51,6 +52,7 @@ export async function createAssignment(actor, data) {
   const assignment = await prisma.$transaction(async (tx) => {
     const created = await tx.assignment.create({ data: { organizationId: actor.organizationId, name: data.name, description: data.description ?? null, supervisorId, workArea: data.workArea ?? null, startDate: data.startDate, dueDate: data.dueDate, surveyRequirements: data.surveyRequirements, targets: data.targets, createdById: actor.userId, updatedById: actor.userId, employees: { create: data.employeeIds.map((employeeId) => ({ employeeId, assignedById: actor.userId })) } }, include: assignmentInclude() });
     await audit(tx, created, actor, "ASSIGNMENT_CREATED", null, { name: created.name, status: created.status, employeeCount: data.employeeIds.length });
+    if (created.status === "PUBLISHED") await createNotificationsForUsers(tx, { organizationId: created.organizationId, actorId: actor.userId, eventType: "ASSIGNMENT_PUBLISHED", title: "New assignment published", body: `${created.name} has been published for you.`, resourceType: "ASSIGNMENT", resourceId: created.id, actionUrl: `/assignments/${created.id}`, metadata: {}, dedupeKey: `assignment:${created.id}:published:${created.publishedAt?.toISOString() ?? created.updatedAt.toISOString()}` }, created.employees.map((member) => member.employeeId));
     return created;
   });
   return assignment;
@@ -89,6 +91,11 @@ export async function updateAssignment(actor, id, data) {
   const assignment = await prisma.$transaction(async (tx) => {
     const updated = await tx.assignment.update({ where: { id }, data: update, include: assignmentInclude() });
     await audit(tx, updated, actor, "ASSIGNMENT_UPDATED", { status: existing.status }, { fields: Object.keys(data) });
+    const relevant = ["name", "description", "dueDate", "startDate", "workArea", "targets", "surveyRequirements"].some((field) => Object.hasOwn(data, field));
+    if (relevant) {
+      const members = await tx.assignmentEmployee.findMany({ where: { assignmentId: id }, select: { employeeId: true } });
+      await createNotificationsForUsers(tx, { organizationId: updated.organizationId, actorId: actor.userId, eventType: "ASSIGNMENT_UPDATED", title: "Assignment details updated", body: `Details for ${updated.name} have changed.`, resourceType: "ASSIGNMENT", resourceId: updated.id, actionUrl: `/assignments/${updated.id}`, metadata: { changedFields: Object.keys(data).filter((field) => ["name", "description", "dueDate", "startDate", "workArea", "targets", "surveyRequirements"].includes(field)) }, dedupeKey: `assignment:${updated.id}:updated:${updated.updatedAt.toISOString()}` }, members.map((member) => member.employeeId));
+    }
     return updated;
   });
   return assignment;
@@ -102,6 +109,7 @@ export async function changeAssignmentState(actor, id, action) {
   const assignment = await prisma.$transaction(async (tx) => {
     const updated = await tx.assignment.update({ where: { id }, data: { status: transition.to, publishedAt: action === "publish" || action === "resume" ? new Date() : undefined, updatedById: actor.userId }, include: assignmentInclude() });
     await audit(tx, updated, actor, transition.action, { status: existing.status }, { status: updated.status });
+    if (action === "publish" || action === "resume") await createNotificationsForUsers(tx, { organizationId: updated.organizationId, actorId: actor.userId, eventType: "ASSIGNMENT_PUBLISHED", title: "New assignment published", body: `${updated.name} has been published for you.`, resourceType: "ASSIGNMENT", resourceId: updated.id, actionUrl: `/assignments/${updated.id}`, metadata: {}, dedupeKey: `assignment:${updated.id}:published:${updated.publishedAt.toISOString()}` }, updated.employees.map((member) => member.employeeId));
     return updated;
   });
   return assignment;

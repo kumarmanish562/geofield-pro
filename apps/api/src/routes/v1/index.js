@@ -16,6 +16,7 @@ import syncRouter from "../../modules/sync/sync.routes.js";
 import surveyReviewsRouter from "../../modules/survey-reviews/survey-reviews.routes.js";
 import reportsRouter from "../../modules/reports/reports.routes.js";
 import analyticsRouter from "../../modules/analytics/analytics.routes.js";
+import notificationsRouter, { adminNotificationsRouter, preferencesRouter, pushDevicesRouter } from "../../modules/notifications/notifications.routes.js";
 
 const router = Router();
 
@@ -36,5 +37,9 @@ router.use("/sync", syncRouter);
 router.use("/survey-reviews", surveyReviewsRouter);
 router.use("/reports", reportsRouter);
 router.use("/analytics", analyticsRouter);
+router.use("/notifications", notificationsRouter);
+router.use("/notification-preferences", preferencesRouter);
+router.use("/push-devices", pushDevicesRouter);
+router.use("/admin/notifications", adminNotificationsRouter);
 
 export default router;

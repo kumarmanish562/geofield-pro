@@ -1,7 +1,11 @@
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext.js";
 import { LoadingView } from "../components/ui.js";
 import { AuthScreen } from "../screens/AuthScreen.js";
@@ -19,9 +23,47 @@ import { AssignmentDetailsScreen } from "../screens/AssignmentDetailsScreen.js";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen.js";
 import { SyncDashboardScreen } from "../screens/SyncDashboardScreen.js";
 import { SurveyReviewScreen } from "../screens/SurveyReviewScreen.js";
+import { NotificationsScreen } from "../screens/NotificationsScreen.js";
+import { getNotificationUnreadCount } from "../services/apiClient.js";
+import { openNotificationTarget } from "./notificationNavigation.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const navigationRef = createNavigationContainerRef();
+
+function NotificationTabIcon({ focused }) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const result = await getNotificationUnreadCount();
+        if (active) setCount(result.data.unreadCount);
+      } catch (error) {
+        console.warn("Unread notification count unavailable:", error.message);
+      }
+    };
+    void refresh();
+    const timer = setInterval(refresh, 60000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, []);
+  return (
+    <View style={{ alignItems: "center" }}>
+      <Text
+        style={{
+          color: focused ? "#d26935" : "#71837a",
+          fontSize: 11,
+          fontWeight: "700",
+        }}
+      >
+        ALERTS{count ? ` ${count > 99 ? "99+" : count}` : ""}
+      </Text>
+    </View>
+  );
+}
 
 function TabIcon({ label, focused }) {
   return (
@@ -114,6 +156,18 @@ function ProfileStack() {
   );
 }
 
+function NotificationsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ title: "Notifications" }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -165,6 +219,16 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
+        name="NotificationsTab"
+        component={NotificationsStack}
+        options={{
+          title: "Alerts",
+          tabBarIcon: ({ focused }) => (
+            <NotificationTabIcon focused={focused} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="ProfileTab"
         component={ProfileStack}
         options={{
@@ -180,9 +244,63 @@ function MainTabs() {
 
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
+  const responseSubscription = useRef(null);
+  const handlePushResponse = useCallback(
+    (response) => {
+      const data = response?.notification?.request?.content?.data;
+      if (data?.eventType && navigationRef.isReady() && isAuthenticated)
+        openNotificationTarget(navigationRef, data);
+    },
+    [isAuthenticated],
+  );
+  useEffect(() => {
+    let mounted = true;
+    import("expo-notifications")
+      .then((Notifications) => {
+        if (!mounted) return;
+        Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowBanner: true,
+            shouldShowList: true,
+            shouldPlaySound: false,
+            shouldSetBadge: false,
+          }),
+        });
+        responseSubscription.current =
+          Notifications.addNotificationResponseReceivedListener(
+            handlePushResponse,
+          );
+      })
+      .catch((error) =>
+        console.warn(
+          "Push notification support is unavailable:",
+          error.message,
+        ),
+      );
+    return () => {
+      mounted = false;
+      responseSubscription.current?.remove();
+    };
+  }, [handlePushResponse]);
   if (isLoading) return <LoadingView label="Restoring secure session..." />;
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        import("expo-notifications")
+          .then((Notifications) =>
+            Notifications.getLastNotificationResponseAsync().then(
+              handlePushResponse,
+            ),
+          )
+          .catch((error) =>
+            console.warn(
+              "Cold-start push response unavailable:",
+              error.message,
+            ),
+          );
+      }}
+    >
       {isAuthenticated ? (
         <MainTabs />
       ) : (

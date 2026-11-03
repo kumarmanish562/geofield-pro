@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
 import { recordAuthEvent } from "../auth/auth.audit.js";
+import { createNotification } from "../notifications/notifications.service.js";
 
 const reviewerRoles = ["ADMIN", "SUPERVISOR", "GIS_ANALYST"];
 const editableStatuses = ["DRAFT", "REJECTED", "CORRECTION_REQUIRED"];
@@ -147,7 +148,7 @@ export async function submitSurvey(actor, id, idempotencyKey) {
 
 export async function reviewSurvey(actor, id, data) {
   ensureReviewer(actor);
-  const survey = await prisma.survey.findFirst({ where: { id, organizationId: actor.organizationId }, select: { id: true, status: true } });
+  const survey = await prisma.survey.findFirst({ where: { id, organizationId: actor.organizationId }, select: { id: true, status: true, employeeId: true, surveyNumber: true } });
   if (!survey) fail("Survey not found.", 404, "SURVEY_NOT_FOUND");
   if (!["SUBMITTED", "UNDER_REVIEW"].includes(survey.status)) fail("Only submitted surveys can be reviewed.", 409, "SURVEY_REVIEW_INVALID");
   const updated = await prisma.$transaction(async (tx) => {
@@ -172,6 +173,9 @@ export async function reviewSurvey(actor, id, data) {
       targetId: id,
       metadata: { previousStatus: survey.status, newStatus: data.reviewStatus, reviewNotes: data.reviewNotes ?? null },
     });
+    const eventType = data.reviewStatus === "APPROVED" ? "SURVEY_APPROVED" : data.reviewStatus === "REJECTED" ? "SURVEY_REJECTED" : "SURVEY_CORRECTION_REQUESTED";
+    const reviewerNote = data.reviewNotes?.trim();
+    await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: survey.employeeId, actorId: actor.userId, eventType, title: eventType === "SURVEY_APPROVED" ? "Survey approved" : eventType === "SURVEY_REJECTED" ? "Survey rejected" : "Survey corrections requested", body: eventType === "SURVEY_APPROVED" ? "Your survey has been approved." : `${eventType === "SURVEY_REJECTED" ? "Your survey was rejected" : "Your survey needs corrections"}.${reviewerNote ? ` Reviewer note: ${reviewerNote.slice(0, 500)}` : ""}`, resourceType: "SURVEY", resourceId: id, actionUrl: `/surveys/${id}`, metadata: { surveyNumber: survey.surveyNumber }, dedupeKey: `survey:${id}:${eventType}:${updated.updatedAt.toISOString()}` });
     return result;
   });
   return publicSurvey(updated);
