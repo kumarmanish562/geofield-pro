@@ -13,6 +13,8 @@ import adminLocationsRouter from "./admin-locations.routes.js";
 import villagesRouter from "./villages.routes.js";
 import surveysRouter from "../../modules/surveys/surveys.routes.js";
 import syncRouter from "../../modules/sync/sync.routes.js";
+import surveyReviewsRouter from "../../modules/survey-reviews/survey-reviews.routes.js";
+import reportsRouter from "../../modules/reports/reports.routes.js";
 
 const router = Router();
 
@@ -30,5 +32,7 @@ router.use("/villages", villagesRouter);
 router.use("/surveys", surveysRouter);
 router.use("/admin/surveys", surveysRouter);
 router.use("/sync", syncRouter);
+router.use("/survey-reviews", surveyReviewsRouter);
+router.use("/reports", reportsRouter);
 
 export default router;

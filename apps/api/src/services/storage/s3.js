@@ -4,6 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "../../config/env.js";
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../../modules/auth/auth.service.js";
+import { recordAuthEvent } from "../../modules/auth/auth.audit.js";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxFileSize = 10 * 1024 * 1024;
@@ -17,7 +18,7 @@ function validateMeta(data) {
   if (!allowedTypes.has(data.mimeType) || !Number.isInteger(data.fileSize) || data.fileSize < 1 || data.fileSize > maxFileSize) fail("Attachment type or size is not allowed.", 400, "INVALID_ATTACHMENT");
 }
 async function ownedSurvey(actor, surveyId) {
-  const survey = await prisma.survey.findFirst({ where: { id: surveyId, organizationId: actor.organizationId, ...(actor.role === "EMPLOYEE" ? { employeeId: actor.userId } : {}) }, select: { id: true } });
+  const survey = await prisma.survey.findFirst({ where: { id: surveyId, organizationId: actor.organizationId, ...(actor.role === "EMPLOYEE" ? { employeeId: actor.userId } : {}), ...(actor.role === "SUPERVISOR" ? { assignment: { supervisorId: actor.userId } } : {}) }, select: { id: true } });
   if (!survey) fail("Survey not found.", 404, "SURVEY_NOT_FOUND");
 }
 
@@ -49,6 +50,7 @@ export async function listAttachments(actor, surveyId) {
   ensureConfigured();
   await ownedSurvey(actor, surveyId);
   const attachments = await prisma.surveyAttachment.findMany({ where: { surveyId, uploadStatus: "COMPLETED" }, orderBy: { createdAt: "asc" } });
+  await recordAuthEvent({ event: "ATTACHMENT_ACCESSED", actorUserId: actor.userId, organizationId: actor.organizationId, targetType: "SurveyAttachment", targetId: surveyId, metadata: { surveyId, count: attachments.length } });
   return Promise.all(attachments.map(async (attachment) => ({ ...attachment, previewUrl: await getSignedUrl(client, new GetObjectCommand({ Bucket: attachment.bucket, Key: attachment.objectKey }), { expiresIn: 300 }) })));
 }
 

@@ -19,7 +19,7 @@ export const surveyCreateSchema = z.object({
 
 export const surveyUpdateSchema = surveyCreateSchema.partial();
 export const surveyListSchema = z.object({
-  status: z.enum(["DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"]).optional(),
+  status: z.enum(["DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "CORRECTION_REQUIRED"]).optional(),
   assignmentId: uuid.optional(),
   villageId: uuid.optional(),
   employeeId: uuid.optional(),
@@ -29,11 +29,11 @@ export const surveyListSchema = z.object({
 }).strict();
 export const submissionSchema = z.object({ idempotencyKey: z.string().trim().min(16).max(160) }).strict();
 export const reviewSchema = z.object({
-  reviewStatus: z.enum(["APPROVED", "REJECTED"]),
+  reviewStatus: z.enum(["APPROVED", "REJECTED", "CORRECTION_REQUIRED"]),
   reviewNotes: z.string().trim().max(2000).optional().nullable(),
 }).strict().superRefine((value, ctx) => {
-  if (value.reviewStatus === "REJECTED" && !value.reviewNotes) {
-    ctx.addIssue({ code: "custom", path: ["reviewNotes"], message: "A rejection reason is required." });
+  if (["REJECTED", "CORRECTION_REQUIRED"].includes(value.reviewStatus) && !value.reviewNotes) {
+    ctx.addIssue({ code: "custom", path: ["reviewNotes"], message: "A reason or correction instruction is required." });
   }
 });
 export const attachmentSchema = z.object({

@@ -367,3 +367,22 @@ export async function submitSurvey(id, idempotencyKey = `mobile-survey-${id}`) {
     body: JSON.stringify({}),
   });
 }
+
+export async function getSurveyReview(id) {
+  return request(`/surveys/${id}`);
+}
+
+export async function getSurveyReviewHistory(id) {
+  return request(`/survey-reviews/${id}/history`);
+}
+
+export async function resubmitSurvey(
+  id,
+  idempotencyKey = `mobile-resubmit-${id}-${Date.now()}`,
+) {
+  return request(`/surveys/${id}/resubmit`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({}),
+  });
+}

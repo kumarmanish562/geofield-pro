@@ -3,11 +3,7 @@ import { AppLayout } from "../components/layout/AppLayout.jsx";
 import { ForgotPasswordPage } from "../features/auth/ForgotPasswordPage.jsx";
 import { LoginPage } from "../features/auth/LoginPage.jsx";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute.jsx";
-import {
-  AnalyticsPage,
-  ReportsPage,
-  SettingsPage,
-} from "../pages/modulePages.jsx";
+import { AnalyticsPage, SettingsPage } from "../pages/modulePages.jsx";
 import { SurveysPage } from "../pages/SurveysPage.jsx";
 import { SurveyDetailsPage } from "../pages/SurveyDetailsPage.jsx";
 import { VillagesPage } from "../pages/VillagesPage.jsx";
@@ -20,6 +16,7 @@ import { AssignmentsPage as AssignmentDirectoryPage } from "../pages/Assignments
 import { AssignmentDetailsPage } from "../pages/AssignmentDetailsPage.jsx";
 import { AttendancePage as AttendanceDashboardPage } from "../pages/AttendancePage.jsx";
 import { LiveMapPage } from "../pages/LiveMapPage.jsx";
+import { ReportsPage as SurveyReportsPage } from "../pages/ReportsPage.jsx";
 
 export function AppRouter() {
   return (
@@ -41,7 +38,7 @@ export function AppRouter() {
           <Route path="/surveys" element={<SurveysPage />} />
           <Route path="/surveys/:id" element={<SurveyDetailsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/reports" element={<SurveyReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

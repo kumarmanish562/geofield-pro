@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
+import { recordAuthEvent } from "../auth/auth.audit.js";
 
 const reviewerRoles = ["ADMIN", "SUPERVISOR", "GIS_ANALYST"];
-const editableStatuses = ["DRAFT", "REJECTED"];
+const editableStatuses = ["DRAFT", "REJECTED", "CORRECTION_REQUIRED"];
 
 function fail(message, status, code) {
   throw new AuthError(message, status, code);
@@ -150,8 +151,51 @@ export async function reviewSurvey(actor, id, data) {
   if (!survey) fail("Survey not found.", 404, "SURVEY_NOT_FOUND");
   if (!["SUBMITTED", "UNDER_REVIEW"].includes(survey.status)) fail("Only submitted surveys can be reviewed.", 409, "SURVEY_REVIEW_INVALID");
   const updated = await prisma.$transaction(async (tx) => {
-    await tx.surveyReview.create({ data: { surveyId: id, reviewedBy: actor.userId, reviewStatus: data.reviewStatus, reviewNotes: data.reviewNotes ?? null } });
-    return tx.survey.update({ where: { id }, data: { status: data.reviewStatus }, include: includeSurvey() });
+    const result = await tx.survey.update({ where: { id }, data: { status: data.reviewStatus }, include: includeSurvey() });
+    await tx.surveyReview.create({
+      data: {
+        surveyId: id,
+        reviewedBy: actor.userId,
+        reviewStatus: data.reviewStatus,
+        action: data.reviewStatus === "APPROVED" ? "APPROVE" : data.reviewStatus === "REJECTED" ? "REJECT" : "REQUEST_CORRECTION",
+        previousStatus: survey.status,
+        newStatus: data.reviewStatus,
+        reviewNotes: data.reviewNotes ?? null,
+      },
+    });
+    await recordAuthEvent({
+      client: tx,
+      event: data.reviewStatus === "APPROVED" ? "SURVEY_APPROVED" : data.reviewStatus === "REJECTED" ? "SURVEY_REJECTED" : "CORRECTION_REQUESTED",
+      actorUserId: actor.userId,
+      organizationId: actor.organizationId,
+      targetType: "Survey",
+      targetId: id,
+      metadata: { previousStatus: survey.status, newStatus: data.reviewStatus, reviewNotes: data.reviewNotes ?? null },
+    });
+    return result;
+  });
+  return publicSurvey(updated);
+}
+
+export async function resubmitSurvey(actor, id, data = {}) {
+  const survey = await prisma.survey.findFirst({ where: { id, organizationId: actor.organizationId, employeeId: actor.userId }, select: { id: true, status: true } });
+  if (!survey) fail("Survey not found.", 404, "SURVEY_NOT_FOUND");
+  if (survey.status !== "CORRECTION_REQUIRED") fail("Only surveys requiring correction can be resubmitted.", 409, "SURVEY_RESUBMIT_INVALID");
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.survey.update({ where: { id }, data: { status: "SUBMITTED", submittedAt: new Date(), submissionKey: data.idempotencyKey ?? undefined }, include: includeSurvey() });
+    await tx.surveyReview.create({
+      data: {
+        surveyId: id,
+        reviewedBy: actor.userId,
+        reviewStatus: "CORRECTION_REQUIRED",
+        action: "RESUBMIT",
+        previousStatus: survey.status,
+        newStatus: "SUBMITTED",
+        reviewNotes: data.notes ?? null,
+      },
+    });
+    await recordAuthEvent({ client: tx, event: "SURVEY_RESUBMITTED", actorUserId: actor.userId, organizationId: actor.organizationId, targetType: "Survey", targetId: id, metadata: { previousStatus: survey.status } });
+    return result;
   });
   return publicSurvey(updated);
 }
