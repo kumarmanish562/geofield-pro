@@ -330,6 +330,24 @@ const openApiDocument = {
       },
       [`${env.API_PREFIX}/villages/spatial/intersections`]: {
         post: { summary: "Find villages intersecting a GeoJSON geometry", security: [{ BearerAuth: [] }], responses: { "200": { description: "Intersecting villages returned." } } }
+      },
+      [`${env.API_PREFIX}/surveys`]: {
+        get: { summary: "List surveys visible to the authenticated user", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated surveys returned." } } },
+        post: { summary: "Create a field survey draft", security: [{ BearerAuth: [] }], responses: { "201": { description: "Survey draft created." }, "400": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/surveys/{id}`]: {
+        get: { summary: "Get a survey", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey returned." } } },
+        patch: { summary: "Update a survey draft", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey updated." } } },
+        delete: { summary: "Delete a survey draft", security: [{ BearerAuth: [] }], responses: { "204": { description: "Draft deleted." } } }
+      },
+      [`${env.API_PREFIX}/surveys/{id}/submit`]: {
+        post: { summary: "Submit a survey idempotently", security: [{ BearerAuth: [] }], parameters: [{ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }], responses: { "200": { description: "Server-confirmed submission returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/admin/surveys/review-queue`]: {
+        get: { summary: "List surveys awaiting review", security: [{ BearerAuth: [] }], responses: { "200": { description: "Review queue returned." } } }
+      },
+      [`${env.API_PREFIX}/admin/surveys/{id}/review`]: {
+        patch: { summary: "Approve or reject a submitted survey", security: [{ BearerAuth: [] }], responses: { "200": { description: "Review result returned." }, "403": { $ref: "#/components/schemas/ErrorResponse" } } }
       }
   }
 };

@@ -7,8 +7,8 @@ import {
   AnalyticsPage,
   ReportsPage,
   SettingsPage,
-  SurveysPage,
 } from "../pages/modulePages.jsx";
+import { SurveysPage } from "../pages/SurveysPage.jsx";
 import { VillagesPage } from "../pages/VillagesPage.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
 import { NotFoundPage } from "../pages/NotFoundPage.jsx";

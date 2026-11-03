@@ -1,11 +1,14 @@
-import { EmptyState, Screen } from "../components/ui.js";
+import { EmptyState, Screen, Button } from "../components/ui.js";
 
-export function ReportsScreen() {
+export function ReportsScreen({ navigation }) {
   return (
     <Screen>
+      <Button onPress={() => navigation.navigate("Survey")}>
+        Open field surveys
+      </Button>
       <EmptyState
-        title="Reports unavailable"
-        description="The current API does not expose report or survey list endpoints yet."
+        title="Reports"
+        description="Survey collection is available from the action above."
       />
     </Screen>
   );
