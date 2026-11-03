@@ -551,9 +551,9 @@ model Survey {
   villageId       String       @map("village_id") @db.Uuid
   gatNumber       String       @map("gat_number") @db.VarChar(80)
   plotNumber      String?      @map("plot_number") @db.VarChar(80)
-  latitude        Decimal      @db.Decimal(9, 6)
-  longitude       Decimal      @db.Decimal(9, 6)
-  gpsAccuracy     Decimal      @map("gps_accuracy") @db.Decimal(8, 2)
+  latitude        Decimal?     @db.Decimal(9, 6)
+  longitude       Decimal?     @db.Decimal(9, 6)
+  gpsAccuracy     Decimal?     @map("gps_accuracy") @db.Decimal(8, 2)
   capturedAt      DateTime     @map("captured_at")
   notes           String?      @db.VarChar(4000)
   status          SurveyStatus @default(DRAFT)

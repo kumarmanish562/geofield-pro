@@ -48,9 +48,9 @@ async function authorizedContext(actor, assignmentId, villageId) {
 function publicSurvey(survey) {
   return {
     ...survey,
-    latitude: Number(survey.latitude),
-    longitude: Number(survey.longitude),
-    gpsAccuracy: Number(survey.gpsAccuracy),
+    latitude: survey.latitude === null ? null : Number(survey.latitude),
+    longitude: survey.longitude === null ? null : Number(survey.longitude),
+    gpsAccuracy: survey.gpsAccuracy === null ? null : Number(survey.gpsAccuracy),
   };
 }
 
@@ -65,9 +65,9 @@ export async function createSurvey(actor, data) {
       villageId: context.village.id,
       gatNumber: data.gatNumber,
       plotNumber: data.plotNumber ?? null,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      gpsAccuracy: data.gpsAccuracy,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      gpsAccuracy: data.gpsAccuracy ?? null,
       capturedAt: data.capturedAt ?? new Date(),
       notes: data.notes ?? null,
     },
@@ -159,4 +159,22 @@ export async function reviewSurvey(actor, id, data) {
 export async function listReviewQueue(actor, filters) {
   ensureReviewer(actor);
   return listSurveys(actor, { ...filters, status: "SUBMITTED" });
+}
+
+export async function getSurveyStats(actor) {
+  ensureReviewer(actor);
+  const grouped = await prisma.survey.groupBy({
+    by: ["status"],
+    where: { organizationId: actor.organizationId },
+    _count: { _all: true },
+  });
+  const counts = Object.fromEntries(grouped.map((item) => [item.status, item._count._all]));
+  return {
+    total: grouped.reduce((sum, item) => sum + item._count._all, 0),
+    draft: counts.DRAFT ?? 0,
+    submitted: counts.SUBMITTED ?? 0,
+    underReview: counts.UNDER_REVIEW ?? 0,
+    approved: counts.APPROVED ?? 0,
+    rejected: counts.REJECTED ?? 0,
+  };
 }

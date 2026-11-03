@@ -1,0 +1,4 @@
+ALTER TABLE "surveys"
+  ALTER COLUMN "latitude" DROP NOT NULL,
+  ALTER COLUMN "longitude" DROP NOT NULL,
+  ALTER COLUMN "gps_accuracy" DROP NOT NULL;

@@ -24,6 +24,13 @@
         {
           "locationAlwaysAndWhenInUsePermission": "GeoField Pro uses your location only during an authorized tracking session."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GeoField Pro uses selected field photographs as survey evidence.",
+          "cameraPermission": "GeoField Pro uses the camera to capture field survey photographs."
+        }
       ]
     ]
   }

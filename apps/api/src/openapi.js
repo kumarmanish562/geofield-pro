@@ -335,6 +335,9 @@ const openApiDocument = {
         get: { summary: "List surveys visible to the authenticated user", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated surveys returned." } } },
         post: { summary: "Create a field survey draft", security: [{ BearerAuth: [] }], responses: { "201": { description: "Survey draft created." }, "400": { $ref: "#/components/schemas/ErrorResponse" } } }
       },
+      [`${env.API_PREFIX}/surveys/stats`]: {
+        get: { summary: "Get organization survey status counts", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey counts returned." } } }
+      },
       [`${env.API_PREFIX}/surveys/{id}`]: {
         get: { summary: "Get a survey", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey returned." } } },
         patch: { summary: "Update a survey draft", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey updated." } } },

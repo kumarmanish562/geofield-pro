@@ -15,6 +15,11 @@ describe("survey validation", () => {
     expect(surveyCreateSchema.safeParse(valid).success).toBe(true);
   });
 
+  it("accepts an incomplete draft without GPS data", () => {
+    const { latitude, longitude, gpsAccuracy, ...draft } = valid;
+    expect(surveyCreateSchema.safeParse(draft).success).toBe(true);
+  });
+
   it("rejects coordinates outside WGS84 bounds", () => {
     expect(surveyCreateSchema.safeParse({ ...valid, latitude: 91 }).success).toBe(false);
     expect(surveyCreateSchema.safeParse({ ...valid, longitude: -181 }).success).toBe(false);

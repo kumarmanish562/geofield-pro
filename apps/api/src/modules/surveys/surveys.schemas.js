@@ -2,9 +2,9 @@ import { z } from "zod";
 
 const uuid = z.string().uuid();
 const coordinates = {
-  latitude: z.coerce.number().finite().min(-90).max(90),
-  longitude: z.coerce.number().finite().min(-180).max(180),
-  gpsAccuracy: z.coerce.number().finite().positive().max(10000),
+  latitude: z.coerce.number().finite().min(-90).max(90).optional().nullable(),
+  longitude: z.coerce.number().finite().min(-180).max(180).optional().nullable(),
+  gpsAccuracy: z.coerce.number().finite().positive().max(10000).optional().nullable(),
 };
 
 export const surveyCreateSchema = z.object({

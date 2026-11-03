@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../components/layout/PageHeader.jsx";
 import { EmptyState } from "../components/ui/EmptyState.jsx";
 import { ErrorState } from "../components/ui/ErrorState.jsx";
@@ -95,7 +96,9 @@ export function SurveysPage() {
                 {data.items.map((survey) => (
                   <tr key={survey.id}>
                     <td>
-                      <strong>{survey.surveyNumber}</strong>
+                      <Link to={`/surveys/${survey.id}`}>
+                        <strong>{survey.surveyNumber}</strong>
+                      </Link>
                       <br />
                       <small>
                         {new Date(survey.createdAt).toLocaleString()}
