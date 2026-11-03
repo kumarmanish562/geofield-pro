@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { Activity, ClipboardCheck, MapPinned, Users } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { PageHeader } from "../components/layout/PageHeader.jsx";
 import { EmptyState } from "../components/ui/EmptyState.jsx";
+import apiClient from "../services/apiClient.js";
 
 const metrics = [
   [
@@ -25,6 +28,16 @@ const metrics = [
 ];
 
 export function DashboardPage() {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    apiClient
+      .get("/admin/surveys/stats")
+      .then(({ data }) => setStats(data.data))
+      .catch(() => toast.error("Survey metrics are currently unavailable."));
+  }, []);
+  const values = {
+    "Submitted surveys": stats?.submitted ?? "—",
+  };
   return (
     <>
       <PageHeader
@@ -38,7 +51,7 @@ export function DashboardPage() {
               <Icon size={19} />
             </div>
             <span>{label}</span>
-            <strong>{value}</strong>
+            <strong>{values[label] ?? value}</strong>
             <small>{hint}</small>
           </article>
         ))}

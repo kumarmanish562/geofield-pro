@@ -294,6 +294,49 @@ export async function createSurvey(data) {
   return request("/surveys", { method: "POST", body: JSON.stringify(data) });
 }
 
+export async function presignSurveyAttachment(surveyId, data) {
+  return request(`/surveys/${surveyId}/attachments/presign`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function completeSurveyAttachment(surveyId, attachmentId) {
+  return request(`/surveys/${surveyId}/attachments/${attachmentId}/complete`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function uploadSurveyPhoto(surveyId, asset) {
+  const response = await fetch(asset.uri);
+  if (!response.ok)
+    throw new ApiError(
+      "The selected photo could not be read.",
+      "PHOTO_READ_FAILED",
+    );
+  const blob = await response.blob();
+  const mimeType = asset.mimeType ?? blob.type ?? "image/jpeg";
+  const presigned = await presignSurveyAttachment(surveyId, {
+    originalFileName: asset.fileName ?? `survey-${Date.now()}.jpg`,
+    mimeType,
+    fileSize: blob.size,
+  });
+  const uploadResponse = await fetch(presigned.data.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": mimeType },
+    body: blob,
+  });
+  if (!uploadResponse.ok)
+    throw new ApiError("Photo upload failed.", "PHOTO_UPLOAD_FAILED");
+  await completeSurveyAttachment(surveyId, presigned.data.attachmentId);
+  return presigned.data.attachmentId;
+}
+
+export async function getSurveyAttachments(surveyId) {
+  return request(`/surveys/${surveyId}/attachments`);
+}
+
 export async function updateSurvey(id, data) {
   return request(`/surveys/${id}`, {
     method: "PATCH",
@@ -301,10 +344,10 @@ export async function updateSurvey(id, data) {
   });
 }
 
-export async function submitSurvey(id) {
+export async function submitSurvey(id, idempotencyKey = `mobile-survey-${id}`) {
   return request(`/surveys/${id}/submit`, {
     method: "POST",
-    headers: { "Idempotency-Key": `mobile-survey-${id}-${Date.now()}` },
+    headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify({}),
   });
 }

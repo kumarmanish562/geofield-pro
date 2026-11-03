@@ -9,6 +9,7 @@ import {
   SettingsPage,
 } from "../pages/modulePages.jsx";
 import { SurveysPage } from "../pages/SurveysPage.jsx";
+import { SurveyDetailsPage } from "../pages/SurveyDetailsPage.jsx";
 import { VillagesPage } from "../pages/VillagesPage.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";
 import { NotFoundPage } from "../pages/NotFoundPage.jsx";
@@ -38,6 +39,7 @@ export function AppRouter() {
           <Route path="/villages" element={<VillagesPage />} />
           <Route path="/live-map" element={<LiveMapPage />} />
           <Route path="/surveys" element={<SurveysPage />} />
+          <Route path="/surveys/:id" element={<SurveyDetailsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/settings" element={<SettingsPage />} />

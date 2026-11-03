@@ -2,9 +2,9 @@
 
 ## Delivered
 
-The API now supports organization-scoped field survey drafts, server-side validation, assignment/village authorization, draft editing and deletion, idempotent submission, and administrator review. Survey coordinates are stored as WGS84 latitude/longitude decimal values; longitude is not silently swapped with latitude.
+The API now supports organization-scoped field survey drafts, including incomplete drafts, server-side validation, assignment/village authorization, draft editing and deletion, idempotent submission, and administrator review. Survey coordinates are stored as WGS84 latitude/longitude decimal values; longitude is not silently swapped with latitude.
 
-Employee mobile includes a survey list and GPS-backed draft form. The admin web application includes a survey list and approve/reject review actions.
+Employee mobile includes authorized assignment/village selection, GPS capture, camera/gallery photographs, direct presigned uploads, draft persistence, preview, and server-confirmed submission results. The admin web application includes dashboard submission counts, searchable status filtering, survey details, a Leaflet location map, secure attachment previews, and approve/reject review actions.
 
 ## API
 
@@ -16,6 +16,9 @@ Employee mobile includes a survey list and GPS-backed draft form. The admin web 
 - `POST /api/v1/surveys/:id/submit` - submit with a required `Idempotency-Key` header.
 - `GET /api/v1/admin/surveys` - organization survey list for authorized staff.
 - `GET /api/v1/admin/surveys/review-queue` - submitted review queue.
+- `GET /api/v1/admin/surveys/stats` - organization status counts.
+- `GET /api/v1/admin/surveys/:id` - complete survey details.
+- `GET /api/v1/admin/surveys/:id/attachments` - signed attachment previews.
 - `PATCH /api/v1/admin/surveys/:id/review` - approve or reject with a rejection reason.
 
 The server is authoritative for status. A submission is only `SUBMITTED` after the transaction commits successfully. Retrying the same idempotency key returns the original result.
@@ -40,6 +43,15 @@ pnpm dev
 pnpm dev:web
 pnpm dev:mobile
 ```
+
+Photo lifecycle:
+
+1. Mobile requests a presigned URL with validated file metadata.
+2. The API generates a random object key and five-minute upload URL.
+3. Mobile uploads the photo directly to S3-compatible storage.
+4. Mobile calls the completion endpoint.
+5. The API verifies object size and content type before marking the attachment complete.
+6. Authorized admin and employee requests receive five-minute signed preview URLs.
 
 Validation commands:
 

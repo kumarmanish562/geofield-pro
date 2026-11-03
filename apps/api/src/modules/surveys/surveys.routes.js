@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../auth/auth.middleware.js";
 import { attachmentSchema, reviewSchema, submissionSchema, surveyCreateSchema, surveyListSchema, surveyUpdateSchema } from "./surveys.schemas.js";
-import { createSurvey, deleteSurvey, getSurvey, listReviewQueue, listSurveys, reviewSurvey, submitSurvey, updateSurvey } from "./surveys.service.js";
+import { createSurvey, deleteSurvey, getSurvey, getSurveyStats, listReviewQueue, listSurveys, reviewSurvey, submitSurvey, updateSurvey } from "./surveys.service.js";
 import { completeUpload, createUpload, deleteAttachment, listAttachments } from "../../services/storage/s3.js";
 
 const router = Router();
@@ -12,6 +12,7 @@ function invalid(res, req, parsed, message) { return res.status(400).json({ succ
 router.use(authenticate);
 router.get("/", handle(async (req, res) => { const parsed = surveyListSchema.safeParse(req.query); if (!parsed.success) return invalid(res, req, parsed, "Survey filters are invalid."); return res.json({ success: true, data: await listSurveys(req.auth, parsed.data), requestId: req.id }); }));
 router.post("/", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = surveyCreateSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Survey details are invalid."); return res.status(201).json({ success: true, data: await createSurvey(req.auth, parsed.data), requestId: req.id }); }));
+router.get("/stats", authorize(...reviewRoles), handle(async (req, res) => res.json({ success: true, data: await getSurveyStats(req.auth), requestId: req.id })));
 router.get("/review-queue", authorize(...reviewRoles), handle(async (req, res) => { const parsed = surveyListSchema.safeParse(req.query); if (!parsed.success) return invalid(res, req, parsed, "Survey filters are invalid."); return res.json({ success: true, data: await listReviewQueue(req.auth, parsed.data), requestId: req.id }); }));
 router.get("/:id", handle(async (req, res) => res.json({ success: true, data: await getSurvey(req.auth, req.params.id), requestId: req.id })));
 router.patch("/:id", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = surveyUpdateSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Survey details are invalid."); return res.json({ success: true, data: await updateSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
