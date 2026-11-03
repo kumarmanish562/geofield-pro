@@ -283,7 +283,7 @@ The platform follows a modular, API-centered architecture.
 
 Additional capabilities:
 - Socket.IO for authorized real-time updates
-- Private storage for survey attachments
+- Local filesystem storage for survey attachments during development
 - Offline-first mobile persistence
 - Idempotent synchronization
 - Audit logging
@@ -302,7 +302,9 @@ Install dependencies and configure the API:
 
 ```powershell
 pnpm install
-Copy-Item .env.example apps/api/.env
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+if (!(Test-Path apps/admin-web/.env)) { Copy-Item apps/admin-web/.env.example apps/admin-web/.env }
+if (!(Test-Path apps/employee-mobile/.env)) { Copy-Item apps/employee-mobile/.env.example apps/employee-mobile/.env }
 ```
 
 Start PostgreSQL, apply migrations, and generate Prisma Client:
@@ -315,8 +317,11 @@ pnpm db:generate
 pnpm db:seed
 ```
 
-`pnpm db:seed` requires `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in
-`apps/api/.env` and is limited to non-production environments.
+The API and Docker Compose read the repository-root `.env`. Its local database
+URL and `POSTGRES_PASSWORD` must use the same password. `pnpm db:seed` reads
+`SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` from that file and is limited to
+non-production environments. Survey photos are stored in `apps/api/uploads`;
+no S3 or other object-storage service is required for local development.
 
 Run the applications in separate terminals:
 
@@ -329,6 +334,10 @@ pnpm dev:mobile
 The API is available at `http://localhost:3000/api/v1`, the admin web
 application at the Vite URL shown in the terminal, and Expo provides a QR
 code or device-specific command for the mobile shell.
+
+The mobile example targets an Android emulator (`10.0.2.2`). For a physical
+phone, change `EXPO_PUBLIC_API_BASE_URL` in `apps/employee-mobile/.env` to your
+computer's LAN IP, for example `http://192.168.1.20:3000/api/v1`.
 
 ## Quality Checks
 

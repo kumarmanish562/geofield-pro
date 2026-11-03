@@ -65,15 +65,15 @@ implemented controls from unverified behavior.
 
 ## File and attachment security
 
-- **Observed controls:** private S3-compatible bucket usage is assumed;
-  object keys are server-generated UUID paths; presigned URLs expire after
-  five minutes; allowlisted declared MIME types and 10 MiB declared size;
-  ownership is checked on parent survey; access is audited.
-- **Risks/unverified:** bytes are not magic-byte inspected or malware scanned;
-  completion verifies stored size/type against declared metadata, not actual
-  content. Storage bucket privacy, encryption, lifecycle, and signed URL policy
-  are external configuration. Attachment duplicate sync needs ownership
-  scoping.
+- **Observed local-development controls:** survey attachments use generated
+  paths under `apps/api/uploads`; upload and preview endpoints require API
+  authentication and parent survey authorization; uploads are limited to
+  10 MiB JPEG/PNG/WebP, and file signatures are checked before persistence.
+  Responses set `nosniff` and private/no-store cache headers.
+- **Risks/unverified:** local filesystem storage is for development only;
+  deployment storage, encryption, backups, and malware scanning are not
+  implemented here. Attachment duplicate IDs are scoped to uploader and
+  survey.
 
 ## GIS and location security
 

@@ -325,8 +325,8 @@ export async function createSurvey(data) {
   return request("/surveys", { method: "POST", body: JSON.stringify(data) });
 }
 
-export async function presignSurveyAttachment(surveyId, data) {
-  return request(`/surveys/${surveyId}/attachments/presign`, {
+export async function createSurveyAttachmentUpload(surveyId, data) {
+  return request(`/surveys/${surveyId}/attachments/upload`, {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -339,6 +339,19 @@ export async function completeSurveyAttachment(surveyId, attachmentId) {
   });
 }
 
+export async function uploadSurveyAttachmentContent(
+  surveyId,
+  attachmentId,
+  blob,
+  mimeType,
+) {
+  return request(`/surveys/${surveyId}/attachments/${attachmentId}/content`, {
+    method: "PUT",
+    headers: { "Content-Type": mimeType },
+    body: blob,
+  });
+}
+
 export async function uploadSurveyPhoto(surveyId, asset, clientAttachmentId) {
   const response = await fetch(asset.uri);
   if (!response.ok)
@@ -348,21 +361,22 @@ export async function uploadSurveyPhoto(surveyId, asset, clientAttachmentId) {
     );
   const blob = await response.blob();
   const mimeType = asset.mimeType ?? blob.type ?? "image/jpeg";
-  const presigned = await presignSurveyAttachment(surveyId, {
+  const upload = await createSurveyAttachmentUpload(surveyId, {
     clientAttachmentId,
     originalFileName: asset.fileName ?? `survey-${Date.now()}.jpg`,
     mimeType,
     fileSize: blob.size,
   });
-  const uploadResponse = await fetch(presigned.data.uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": mimeType },
-    body: blob,
-  });
-  if (!uploadResponse.ok)
-    throw new ApiError("Photo upload failed.", "PHOTO_UPLOAD_FAILED");
-  await completeSurveyAttachment(surveyId, presigned.data.attachmentId);
-  return presigned.data.attachmentId;
+  if (upload.data.status !== "COMPLETED") {
+    await uploadSurveyAttachmentContent(
+      surveyId,
+      upload.data.attachmentId,
+      blob,
+      mimeType,
+    );
+  }
+  await completeSurveyAttachment(surveyId, upload.data.attachmentId);
+  return upload.data.attachmentId;
 }
 
 export async function getSurveyAttachments(surveyId) {

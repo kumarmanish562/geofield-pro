@@ -9,7 +9,8 @@
 
 ## Configuration
 
-Set `EXPO_PUBLIC_API_BASE_URL` to the API URL including `/api/v1`.
+Copy `.env.example` to `.env` and keep `EXPO_PUBLIC_API_BASE_URL` pointed at
+the API URL including `/api/v1`.
 
 PowerShell example:
 
@@ -44,7 +45,7 @@ never logged.
 
 ## Current limitations
 
-The current backend exposes authentication, health and readiness endpoints only.
-Assignments, attendance, map data, reports and surveys therefore show explicit
-unavailable states rather than fabricated records or successful actions. Location
-permission is not requested until a configured location-backed feature exists.
+For an Android emulator, use `http://10.0.2.2:3000/api/v1`. For a physical
+phone, use the computer's LAN IP address instead of `localhost` or
+`10.0.2.2`. Survey photos upload to the local API and are stored in
+`apps/api/uploads` during development.

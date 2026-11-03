@@ -4,11 +4,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { z } from "zod";
 
-// Load apps/api/.env before validating environment variables.
+// Load the repository-root .env used by Docker Compose and the local apps.
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
 dotenv.config({
-  path: resolve(currentDir, "../../.env"),
+  path: resolve(currentDir, "../../../../.env"),
 });
 
 // Parse boolean environment variables safely.
@@ -41,12 +41,7 @@ export const envSchema = z.object({
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 
-  S3_ENDPOINT: z.string().url().optional(),
-  S3_REGION: z.string().default("us-east-1"),
-  S3_BUCKET: z.string().min(1).optional(),
-  S3_ACCESS_KEY_ID: z.string().min(1).optional(),
-  S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-  S3_FORCE_PATH_STYLE: booleanFromString.default(false),
+  LOCAL_UPLOAD_DIR: z.string().min(1).default("uploads"),
 
   // Authentication and JWT
   JWT_ISSUER: z.string().min(1),

@@ -1,8 +1,8 @@
-import { Router } from "express";
+import { Router, raw } from "express";
 import { authenticate, authorize } from "../auth/auth.middleware.js";
 import { attachmentSchema, reviewSchema, submissionSchema, surveyCreateSchema, surveyListSchema, surveyUpdateSchema } from "./surveys.schemas.js";
 import { createSurvey, deleteSurvey, getSurvey, getSurveyStats, listReviewQueue, listSurveys, resubmitSurvey, reviewSurvey, submitSurvey, updateSurvey } from "./surveys.service.js";
-import { completeUpload, createUpload, deleteAttachment, listAttachments } from "../../services/storage/s3.js";
+import { completeUpload, createUpload, deleteAttachment, getAttachmentContent, listAttachments, uploadContent } from "../../services/storage/local.js";
 
 const router = Router();
 const reviewRoles = ["ADMIN", "SUPERVISOR", "GIS_ANALYST"];
@@ -20,8 +20,10 @@ router.delete("/:id", authorize("EMPLOYEE"), handle(async (req, res) => { await 
 router.post("/:id/submit", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = submissionSchema.safeParse({ idempotencyKey: req.get("Idempotency-Key") ?? req.body?.idempotencyKey }); if (!parsed.success) return invalid(res, req, parsed, "A valid Idempotency-Key header is required."); return res.json({ success: true, data: await submitSurvey(req.auth, req.params.id, parsed.data.idempotencyKey), requestId: req.id }); }));
 router.post("/:id/resubmit", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = submissionSchema.safeParse({ idempotencyKey: req.get("Idempotency-Key") ?? req.body?.idempotencyKey }); if (!parsed.success) return invalid(res, req, parsed, "A valid Idempotency-Key header is required."); return res.json({ success: true, data: await resubmitSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
 router.patch("/:id/review", authorize(...reviewRoles), handle(async (req, res) => { const parsed = reviewSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Review details are invalid."); return res.json({ success: true, data: await reviewSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
-router.post("/:id/attachments/presign", handle(async (req, res) => { const parsed = attachmentSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Attachment metadata is invalid."); return res.json({ success: true, data: await createUpload(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
+router.post("/:id/attachments/upload", handle(async (req, res) => { const parsed = attachmentSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Attachment metadata is invalid."); return res.json({ success: true, data: await createUpload(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
+router.put("/:id/attachments/:attachmentId/content", raw({ type: ["image/jpeg", "image/png", "image/webp"], limit: "10mb" }), handle(async (req, res) => { await uploadContent(req.auth, req.params.id, req.params.attachmentId, req.body, req.get("Content-Type")); return res.status(201).json({ success: true, data: { status: "COMPLETED" }, requestId: req.id }); }));
 router.post("/:id/attachments/:attachmentId/complete", handle(async (req, res) => res.json({ success: true, data: await completeUpload(req.auth, req.params.id, req.params.attachmentId), requestId: req.id })));
 router.get("/:id/attachments", handle(async (req, res) => res.json({ success: true, data: await listAttachments(req.auth, req.params.id), requestId: req.id })));
+router.get("/:id/attachments/:attachmentId/content", handle(async (req, res) => { const content = await getAttachmentContent(req.auth, req.params.id, req.params.attachmentId); res.set({ "Content-Type": content.mimeType, "Content-Disposition": "inline", "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" }); return res.sendFile(content.path); }));
 router.delete("/:id/attachments/:attachmentId", handle(async (req, res) => { await deleteAttachment(req.auth, req.params.id, req.params.attachmentId); return res.status(204).send(); }));
 export default router;

@@ -4,7 +4,7 @@
 
 The API now supports organization-scoped field survey drafts, including incomplete drafts, server-side validation, assignment/village authorization, draft editing and deletion, idempotent submission, and administrator review. Survey coordinates are stored as WGS84 latitude/longitude decimal values; longitude is not silently swapped with latitude.
 
-Employee mobile includes authorized assignment/village selection, GPS capture, camera/gallery photographs, direct presigned uploads, draft persistence, preview, and server-confirmed submission results. The admin web application includes dashboard submission counts, searchable status filtering, survey details, a Leaflet location map, secure attachment previews, and approve/reject review actions.
+Employee mobile includes authorized assignment/village selection, GPS capture, camera/gallery photographs, authenticated local API uploads, draft persistence, preview, and server-confirmed submission results. The admin web application includes dashboard submission counts, searchable status filtering, survey details, a Leaflet location map, authenticated attachment previews, and approve/reject review actions.
 
 ## API
 
@@ -18,7 +18,11 @@ Employee mobile includes authorized assignment/village selection, GPS capture, c
 - `GET /api/v1/admin/surveys/review-queue` - submitted review queue.
 - `GET /api/v1/admin/surveys/stats` - organization status counts.
 - `GET /api/v1/admin/surveys/:id` - complete survey details.
-- `GET /api/v1/admin/surveys/:id/attachments` - signed attachment previews.
+- `GET /api/v1/admin/surveys/:id/attachments` - authorized local attachment previews.
+- `POST /api/v1/surveys/:id/attachments/upload` - record metadata and obtain the local upload path.
+- `PUT /api/v1/surveys/:id/attachments/:attachmentId/content` - authenticated image-byte upload.
+- `GET /api/v1/surveys/:id/attachments/:attachmentId/content` - authenticated attachment content.
+- `POST /api/v1/surveys/:id/attachments/:attachmentId/complete` - confirm the stored attachment.
 - `PATCH /api/v1/admin/surveys/:id/review` - approve or reject with a rejection reason.
 
 The server is authoritative for status. A submission is only `SUBMITTED` after the transaction commits successfully. Retrying the same idempotency key returns the original result.
@@ -29,7 +33,7 @@ Migration `20261103080000_add_field_surveys` adds `surveys`, `survey_attachments
 
 ## Attachments
 
-Attachment metadata validation is present at the API boundary for JPEG, PNG, and WebP files up to 10 MiB. The API generates five-minute S3-compatible presigned upload and preview URLs, verifies uploaded object size and content type with `HeadObject`, and stores only metadata in PostgreSQL. If storage credentials are absent, requests fail explicitly with `STORAGE_NOT_CONFIGURED`; clients must not treat a failed presign as an uploaded attachment.
+Attachment uploads accept JPEG, PNG, and WebP files up to 10 MiB. In local development, the API stores generated object paths under `apps/api/uploads`, checks actual image signatures, stores attachment metadata in PostgreSQL, and serves authenticated previews through the API. No S3 credentials or object-storage service are required.
 
 ## Configuration and commands
 
@@ -46,12 +50,11 @@ pnpm dev:mobile
 
 Photo lifecycle:
 
-1. Mobile requests a presigned URL with validated file metadata.
-2. The API generates a random object key and five-minute upload URL.
-3. Mobile uploads the photo directly to S3-compatible storage.
-4. Mobile calls the completion endpoint.
-5. The API verifies object size and content type before marking the attachment complete.
-6. Authorized admin and employee requests receive five-minute signed preview URLs.
+1. Mobile requests an upload path with validated file metadata.
+2. The API generates a random object key and authenticated upload path.
+3. Mobile sends the photo bytes to the API upload route.
+4. The API verifies size, declared type, and image signature before writing locally.
+5. Authorized requests receive authenticated API preview paths.
 
 Validation commands:
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -15,6 +15,7 @@ export function SurveyDetailsPage() {
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
   const [working, setWorking] = useState(false);
+  const previewUrls = useRef([]);
 
   async function load() {
     try {
@@ -28,7 +29,18 @@ export function SurveyDetailsPage() {
         const attachmentResponse = await apiClient.get(
           `/admin/surveys/${id}/attachments`,
         );
-        setAttachments(attachmentResponse.data.data);
+        previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+        const attachmentsWithPreviews = await Promise.all(
+          attachmentResponse.data.data.map(async (attachment) => {
+            const previewResponse = await apiClient.get(attachment.previewUrl, {
+              responseType: "blob",
+            });
+            const previewUrl = URL.createObjectURL(previewResponse.data);
+            previewUrls.current.push(previewUrl);
+            return { ...attachment, previewUrl };
+          }),
+        );
+        setAttachments(attachmentsWithPreviews);
       } catch {
         setAttachments([]);
       }
@@ -38,6 +50,7 @@ export function SurveyDetailsPage() {
   }
   useEffect(() => {
     load();
+    return () => previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
   }, [id]);
 
   if (error) return <ErrorState onRetry={load} />;
@@ -231,7 +244,7 @@ export function SurveyDetailsPage() {
         <div className="panel-heading">
           <div>
             <h3>Photographs</h3>
-            <p>Securely signed previews from object storage.</p>
+            <p>Authenticated previews from local development storage.</p>
           </div>
         </div>
         {attachments.length ? (

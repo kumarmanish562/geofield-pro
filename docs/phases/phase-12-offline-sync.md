@@ -23,7 +23,7 @@ Endpoints:
 
 ## Retry and attachments
 
-Queue failures retain the item and use exponential delays of 5, 10, 20, 40, and 60 seconds. Validation, authorization, and conflict errors are recorded as failed items for user review rather than retried indefinitely. Attachment IDs are stable and are passed to the existing S3 presign/complete workflow, which enforces ownership, MIME type, size, object verification, and duplicate protection.
+Queue failures retain the item and use exponential delays of 5, 10, 20, 40, and 60 seconds. Validation, authorization, and conflict errors are recorded as failed items for user review rather than retried indefinitely. Attachment IDs are stable and are passed to the authenticated local upload/complete API, which enforces ownership, MIME type, size, image signature, and duplicate protection.
 
 ## Commands
 
