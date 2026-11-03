@@ -86,7 +86,9 @@ function sendError(res, req, error) {
   if (status >= 500) {
     req.log?.error(
       {
-        err: error,
+        errorName: error.name,
+        errorCode: error.code,
+        statusCode: status,
         requestId: req.id,
       },
       "Authentication request failed"

@@ -12,6 +12,7 @@ import {
   logout as logoutRequest,
   restoreSession,
 } from "../services/apiClient.js";
+import { setOfflineOwner } from "../services/offlineStore";
 
 const AuthContext = createContext(null);
 
@@ -21,23 +22,32 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     restoreSession()
-      .then(setUser)
+      .then((restoredUser) => {
+        setOfflineOwner(restoredUser?.id);
+        setUser(restoredUser);
+      })
       .finally(() => setStatus("ready"));
   }, []);
 
   const login = useCallback(async (email, password) => {
     const authenticatedUser = await loginRequest(email, password);
+    setOfflineOwner(authenticatedUser.id);
     setUser(authenticatedUser);
     return authenticatedUser;
   }, []);
 
   const logout = useCallback(async () => {
-    await logoutRequest();
-    setUser(null);
+    try {
+      await logoutRequest();
+    } finally {
+      setOfflineOwner(null);
+      setUser(null);
+    }
   }, []);
 
   const acceptInvite = useCallback(async (token, name, password) => {
     const authenticatedUser = await acceptInvitation(token, name, password);
+    setOfflineOwner(authenticatedUser.id);
     setUser(authenticatedUser);
     return authenticatedUser;
   }, []);

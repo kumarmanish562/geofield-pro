@@ -1,6 +1,15 @@
 const drafts = new Map();
 const queue = [];
 const history = [];
+let activeOwnerId = null;
+export function setOfflineOwner(userId) {
+  activeOwnerId = userId ?? null;
+}
+function owner() {
+  if (!activeOwnerId)
+    throw new Error("Offline data requires an authenticated account.");
+  return activeOwnerId;
+}
 
 function uuid() {
   return `web-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -15,6 +24,7 @@ export function saveDraft(
   clientSurveyId = payload.clientSurveyId ?? createClientSurveyId(),
 ) {
   drafts.set(clientSurveyId, {
+    owner_user_id: owner(),
     client_survey_id: clientSurveyId,
     server_survey_id: null,
     payload: { ...payload, clientSurveyId },
@@ -26,11 +36,16 @@ export function saveDraft(
 }
 
 export function getDrafts() {
-  return [...drafts.values()];
+  const ownerId = owner();
+  return [...drafts.values()].filter(
+    (draft) => draft.owner_user_id === ownerId,
+  );
 }
 
 export function getDraft(clientSurveyId) {
-  return drafts.get(clientSurveyId) ?? null;
+  const ownerId = owner();
+  const draft = drafts.get(clientSurveyId);
+  return draft?.owner_user_id === ownerId ? draft : null;
 }
 
 export function enqueueSurvey(payload, version = 1) {
@@ -39,6 +54,7 @@ export function enqueueSurvey(payload, version = 1) {
   drafts.get(clientSurveyId).status = "PENDING_SYNC";
   queue.push({
     id: queue.length + 1,
+    owner_user_id: owner(),
     entity_id: clientSurveyId,
     entity_type: "SURVEY",
     client_event_id: clientEventId,
@@ -51,11 +67,18 @@ export function enqueueSurvey(payload, version = 1) {
 }
 
 export function getPendingQueue() {
-  return queue.filter((item) => ["PENDING", "FAILED"].includes(item.status));
+  const ownerId = owner();
+  return queue.filter(
+    (item) =>
+      item.owner_user_id === ownerId &&
+      ["PENDING", "FAILED"].includes(item.status),
+  );
 }
 
 export function updateQueueItem(id, status, lastError = null, retryCount = 0) {
-  const item = queue.find((entry) => entry.id === id);
+  const item = queue.find(
+    (entry) => entry.id === id && entry.owner_user_id === owner(),
+  );
   if (item)
     Object.assign(item, {
       status,
@@ -71,7 +94,7 @@ export function markDraftStatus(
   serverSurveyId = null,
 ) {
   const draft = drafts.get(clientSurveyId);
-  if (draft)
+  if (draft?.owner_user_id === owner())
     Object.assign(draft, {
       status,
       server_version: serverVersion,
@@ -81,6 +104,7 @@ export function markDraftStatus(
 
 export function addSyncHistory(item) {
   history.unshift({
+    owner_user_id: owner(),
     id: history.length + 1,
     ...item,
     created_at: new Date().toISOString(),
@@ -88,17 +112,22 @@ export function addSyncHistory(item) {
 }
 
 export function getSyncHistory() {
-  return history.slice(0, 100);
+  const ownerId = owner();
+  return history.filter((item) => item.owner_user_id === ownerId).slice(0, 100);
 }
 
 export function getOfflineSummary() {
+  const ownerId = owner();
   const statuses = {};
   for (const draft of drafts.values())
-    statuses[draft.status] = (statuses[draft.status] ?? 0) + 1;
+    if (draft.owner_user_id === ownerId)
+      statuses[draft.status] = (statuses[draft.status] ?? 0) + 1;
   return {
     drafts: statuses,
     queue: {},
     lastSync:
-      history.find((item) => item.result === "SYNCED")?.created_at ?? null,
+      history.find(
+        (item) => item.owner_user_id === ownerId && item.result === "SYNCED",
+      )?.created_at ?? null,
   };
 }

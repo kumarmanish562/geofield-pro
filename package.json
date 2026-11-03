@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.18.3",
+  "pnpm": {
+    "overrides": {
+      "lodash": "4.18.1",
+      "postcss": "8.5.26",
+      "metro": "0.83.8"
+    }
+  },
   "scripts": {
     "dev": "pnpm --filter @geofield/api dev",
     "dev:web": "pnpm --filter @geofield/admin-web dev",
@@ -14,9 +21,13 @@
     "build:all": "pnpm build && pnpm build:web && pnpm build:mobile",
     "build:mobile": "pnpm --filter @geofield/employee-mobile build",
     "lint": "eslint .",
+    "typecheck": "pnpm lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "pnpm --filter @geofield/api test",
+    "test": "pnpm test:api && pnpm test:web && pnpm test:mobile",
+    "test:api": "pnpm --filter @geofield/api test",
+    "test:web": "pnpm --filter @geofield/admin-web test",
+    "test:mobile": "pnpm --filter @geofield/employee-mobile test",
     "test:watch": "pnpm --filter @geofield/api test:watch",
     "test:coverage": "pnpm --filter @geofield/api test:coverage",
     "db:up": "docker compose up -d postgres",

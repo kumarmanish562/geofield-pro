@@ -19,7 +19,8 @@ export const requestLogger = pinoHttp({
       return {
         id: req.id,
         method: req.method,
-        url: req.url
+        // Query parameters can contain sensitive filters or bearer-like values.
+        url: req.url?.split("?", 1)[0]
       };
     }
   }

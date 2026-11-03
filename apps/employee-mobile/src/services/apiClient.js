@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { ApiError } from "./apiErrors.js";
+import { setOfflineOwner } from "./offlineStore";
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000/api/v1";
@@ -7,6 +8,7 @@ const REFRESH_TOKEN_KEY = "geofield.refresh_token";
 const ATTENDANCE_QUEUE_KEY = "geofield.attendance_queue";
 
 let accessToken = null;
+let activeUserId = null;
 let refreshPromise = null;
 
 async function readJson(response) {
@@ -150,12 +152,26 @@ export async function acceptInvitation(token, name, password) {
 
 export async function clearSession() {
   accessToken = null;
+  activeUserId = null;
+  setOfflineOwner(null);
   await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
 }
 
 async function saveSession(data) {
   accessToken = data.accessToken;
+  activeUserId = data.user?.id ?? null;
+  setOfflineOwner(activeUserId);
   await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken);
+}
+
+function attendanceQueueKey() {
+  if (!activeUserId)
+    throw new ApiError(
+      "Sign in to access offline attendance.",
+      "SESSION_EXPIRED",
+      401,
+    );
+  return `${ATTENDANCE_QUEUE_KEY}.${activeUserId}`;
 }
 
 export function getApiBaseUrl() {
@@ -194,26 +210,26 @@ export async function submitAttendanceEvent(eventType, metadata = {}) {
 }
 
 export async function queueAttendanceEvent(eventType, metadata = {}) {
-  const queued = JSON.parse(
-    (await SecureStore.getItemAsync(ATTENDANCE_QUEUE_KEY)) ?? "[]",
-  );
+  const queueKey = attendanceQueueKey();
+  const queued = JSON.parse((await SecureStore.getItemAsync(queueKey)) ?? "[]");
   queued.push({
     clientEventId: createEventId(),
     eventType,
     clientOccurredAt: new Date().toISOString(),
     metadata,
   });
-  await SecureStore.setItemAsync(ATTENDANCE_QUEUE_KEY, JSON.stringify(queued));
+  await SecureStore.setItemAsync(queueKey, JSON.stringify(queued));
   return queued.length;
 }
 
 export async function getPendingAttendanceEvents() {
   return JSON.parse(
-    (await SecureStore.getItemAsync(ATTENDANCE_QUEUE_KEY)) ?? "[]",
+    (await SecureStore.getItemAsync(attendanceQueueKey())) ?? "[]",
   );
 }
 
 export async function synchronizeAttendanceEvents() {
+  const queueKey = attendanceQueueKey();
   const queued = await getPendingAttendanceEvents();
   if (!queued.length) return { results: [] };
   const response = await request(
@@ -233,7 +249,7 @@ export async function synchronizeAttendanceEvents() {
       .map((result) => result.clientEventId),
   );
   await SecureStore.setItemAsync(
-    ATTENDANCE_QUEUE_KEY,
+    queueKey,
     JSON.stringify([
       ...rejected,
       ...queued.filter((event) => !processedIds.has(event.clientEventId)),
