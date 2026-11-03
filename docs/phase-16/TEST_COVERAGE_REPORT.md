@@ -8,7 +8,8 @@ was unavailable here.
 
 | Suite | Result | Notes |
 | --- | --- | --- |
-| API Vitest | 49 passed, 2 failed (51 total) | The two failures require PostgreSQL: password-reset DB behavior and healthy readiness. Local DB connection was refused; Docker daemon was unavailable. |
+| API Vitest, local | 49 passed, 2 failed (51 total) | The two failures require PostgreSQL: password-reset DB behavior and healthy readiness. Local DB connection was refused; Docker daemon was unavailable. |
+| API CI | Passed | PostgreSQL migrations, PostGIS checks, API build/tests, coverage execution, and isolated backup/restore all passed on commit `87a8590` in both push and pull-request runs. |
 | API targeted security/GIS/location/attendance tests | 17 passed | Cross-owner sync, redacted logging, GIS structure, and future timestamps. |
 | Admin Web | 3 passed | API client test suite configured and executed. |
 | Employee Mobile | 5 passed | API/navigation and offline account-isolation web-store tests. |
@@ -18,7 +19,7 @@ was unavailable here.
 | Employee Mobile web export | Passed | Expo export completed after Metro compatibility update. |
 | API coverage | Instrumented, report unavailable | Suite produced database-dependent failures; no coverage artifact was retained locally. CI uploads coverage. |
 | Dependency audit | Passed high-severity gate | No high/critical production findings; 4 moderate and 1 low findings remain. |
-| Backup/restore | CI check added, not yet executed | Requires CI PostGIS service; restore must pass in CI before operational verification. |
+| Backup/restore | Passed in CI | Isolated PostGIS restore, table counts, geometry EWKB digest, and PostGIS availability verified. Production backup controls remain unverified. |
 
 The test output demonstrated that logger behavior should be checked: request
 errors are serialized during Supertest runs. Test logs are noisy and not

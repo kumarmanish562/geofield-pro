@@ -38,6 +38,10 @@ diagnosable. The job never connects to production.
 ## Evidence status
 
 Local restoration could not be executed during this audit because the Docker
-daemon/PostgreSQL service was unavailable. The first CI executions failed in
-the isolated restore step; this runbook and workflow are being revised, and
-the operational finding remains open until a successful run is reviewed.
+daemon/PostgreSQL service was unavailable. The isolated CI backup and restore
+passed after pinning the API job to Ubuntu 24.04 so its PostgreSQL 16 client
+matches the PostgreSQL 16 PostGIS service. Verified on commit `87a8590` by
+both the [push run](https://github.com/kumarmanish562/geofield-pro/actions/runs/41676806191)
+and [pull request run](https://github.com/kumarmanish562/geofield-pro/actions/runs/41676817157).
+Production backup encryption, retention, and recovery objectives remain
+deployment-owner responsibilities and were not verified by this CI drill.

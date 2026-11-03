@@ -33,14 +33,18 @@ remain unverified. See `VULNERABILITY_REPORT.md` for tracked findings.
   passed. The Admin Web build reports a large-chunk advisory.
 - Production dependency audit passed the high-severity gate; 4 moderate and 1
   low advisory remain.
-- `git diff --check` passed. CI backup/restore was added but not locally or
-  locally verified. Initial CI runs fail at the isolated restore step; the
-  workflow now emits per-stage restore diagnostics and compares an EWKB digest.
-  The operational verification remains open until that check passes.
+- `git diff --check` passed. CI backup/restore, the API suite, the workspace
+  build/lint/tests, and dependency audit passed on commit `87a8590` for both
+  push and pull-request events. The [push run](https://github.com/kumarmanish562/geofield-pro/actions/runs/41676806191)
+  and [pull request run](https://github.com/kumarmanish562/geofield-pro/actions/runs/41676817157)
+  are green.
+- The restore failure was caused by PostgreSQL 18 client output containing
+  `SET transaction_timeout`, which PostgreSQL 16 does not recognize. Pinning
+  the API job to Ubuntu 24.04 aligned its PostgreSQL 16 client with the
+  PostgreSQL 16 PostGIS service.
 
 ## Remaining release requirements
 
-- Run full API tests and the backup/restore drill in CI with PostGIS available.
 - Test native SQLite migration/account switching on a device, including
   preservation/recovery policy for unowned legacy rows.
 - Inspect uploaded image signatures and verify deployed bucket privacy,
