@@ -1,4 +1,5 @@
 import { ModulePlaceholderPage } from "./ModulePlaceholderPage.jsx";
+import { AnalyticsPage } from "./AnalyticsPage.jsx";
 const pages = {
   AttendancePage: ["Attendance", "Track team availability and work sessions."],
   AssignmentsPage: ["Assignments", "Plan and monitor field work."],
@@ -8,7 +9,6 @@ const pages = {
     "Review field locations when the GIS module is enabled.",
   ],
   SurveysPage: ["Surveys", "Review and manage field survey submissions."],
-  AnalyticsPage: ["Analytics", "Understand progress across your organization."],
   ReportsPage: [
     "Reports",
     "Generate operational reports for your organization.",
@@ -29,7 +29,7 @@ export const {
   VillagesPage,
   LiveMapPage,
   SurveysPage,
-  AnalyticsPage,
   ReportsPage,
   SettingsPage,
 } = modulePages;
+export { AnalyticsPage };

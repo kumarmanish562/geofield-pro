@@ -45,6 +45,24 @@ const openApiDocument = {
   },
 
   paths: {
+    [`${env.API_PREFIX}/analytics/overview`]: {
+      get: { summary: "Get organization dashboard KPIs", description: "Authenticated ADMIN, SUPERVISOR, or GIS_ANALYST. Organization scoped; returns documented persisted-data counts. Accepts startDate, endDate, and teamId filters.", security: [{ BearerAuth: [] }], responses: { "200": { description: "KPI metrics and definitions." }, "403": { description: "Role is not allowed." } } }
+    },
+    [`${env.API_PREFIX}/analytics/attendance`]: {
+      get: { summary: "Get attendance trends and paginated records", description: "Accepts startDate, endDate, teamId, page, pageSize (maximum 100). Trend counts records by attendance date and current status. Work-session duration uses completed sessions only and subtracts recorded breaks.", security: [{ BearerAuth: [] }], responses: { "200": { description: "Attendance trend, duration, records, pagination, and calculation definitions." } } }
+    },
+    [`${env.API_PREFIX}/analytics/assignments`]: {
+      get: { summary: "Get assignment progress", description: "Accepts startDate, endDate, teamId, page, pageSize (maximum 100). Progress compares persisted surveys with configured numeric targets; missing targets yield null percentages.", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated measured assignment progress." } } }
+    },
+    [`${env.API_PREFIX}/analytics/surveys`]: {
+      get: { summary: "Get survey analytics", description: "Accepts startDate, endDate, teamId, page, pageSize (maximum 100). Approval rate is approved / (approved + rejected); pending and correction-required records are excluded.", security: [{ BearerAuth: [] }], responses: { "200": { description: "Status totals, village counts, approval rate, drill-down, and pagination." } } }
+    },
+    [`${env.API_PREFIX}/analytics/village-coverage`]: {
+      get: { summary: "Get village survey activity", description: "Accepts startDate, endDate, teamId, page, pageSize (maximum 100). Activity means persisted matching surveys; no population denominator is available.", security: [{ BearerAuth: [] }], responses: { "200": { description: "Paginated active villages with survey counts." } } }
+    },
+    [`${env.API_PREFIX}/analytics/locations`]: {
+      get: { summary: "Get location data quality and freshness", description: "Accepts startDate, endDate, teamId, page, pageSize. Poor accuracy means greater than 100m. Delayed upload means capturedAt is more than five minutes before receivedAt. Stale means latest received observation is more than five minutes old; it does not establish device offline state.", security: [{ BearerAuth: [] }], responses: { "200": { description: "Quality counts, delayed uploads, and paginated stale employees." } } }
+    },
     [`${env.API_PREFIX}/health`]: {
       get: {
         summary: "Check API process health",

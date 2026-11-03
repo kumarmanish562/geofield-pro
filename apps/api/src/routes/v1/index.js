@@ -15,6 +15,7 @@ import surveysRouter from "../../modules/surveys/surveys.routes.js";
 import syncRouter from "../../modules/sync/sync.routes.js";
 import surveyReviewsRouter from "../../modules/survey-reviews/survey-reviews.routes.js";
 import reportsRouter from "../../modules/reports/reports.routes.js";
+import analyticsRouter from "../../modules/analytics/analytics.routes.js";
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use("/admin/surveys", surveysRouter);
 router.use("/sync", syncRouter);
 router.use("/survey-reviews", surveyReviewsRouter);
 router.use("/reports", reportsRouter);
+router.use("/analytics", analyticsRouter);
 
 export default router;
