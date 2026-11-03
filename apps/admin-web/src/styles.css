@@ -847,7 +847,9 @@ td span {
 .analytics-highlight {
   display: block;
   color: #172b4d;
-  font: 700 2rem "Space Grotesk", sans-serif;
+  font:
+    700 2rem "Space Grotesk",
+    sans-serif;
 }
 .analytics-location-stats {
   display: grid;
@@ -856,13 +858,17 @@ td span {
 }
 .analytics-location-stats strong {
   color: #172b4d;
-  font: 700 1.3rem "Space Grotesk", sans-serif;
+  font:
+    700 1.3rem "Space Grotesk",
+    sans-serif;
 }
 .analytics-location-stats small {
   display: block;
   margin-top: 4px;
   color: #8293a9;
-  font: 500 0.7rem "DM Sans", sans-serif;
+  font:
+    500 0.7rem "DM Sans",
+    sans-serif;
 }
 .analytics-stale-list {
   display: grid;

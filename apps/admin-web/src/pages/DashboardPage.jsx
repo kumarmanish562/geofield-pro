@@ -60,8 +60,18 @@ export function DashboardPage() {
       "Active villages in organization",
       MapPinned,
     ],
-    ["Completed surveys", overview?.completedSurveys ?? "—", "Approved by a reviewer", Activity],
-    ["Awaiting review", overview?.awaitingReview ?? "—", "Submitted or under review", ClipboardCheck],
+    [
+      "Completed surveys",
+      overview?.completedSurveys ?? "—",
+      "Approved by a reviewer",
+      Activity,
+    ],
+    [
+      "Awaiting review",
+      overview?.awaitingReview ?? "—",
+      "Submitted or under review",
+      ClipboardCheck,
+    ],
   ];
   const points = useMemo(
     () =>
