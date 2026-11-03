@@ -2,8 +2,8 @@
 
 :root {
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  color: #17352f;
-  background: #f5f7f3;
+  color: #172b4d;
+  background: #f6f8fb;
   font-synthesis: none;
 }
 * {
@@ -66,8 +66,8 @@ a {
   width: 252px;
   flex: 0 0 252px;
   flex-direction: column;
-  border-right: 1px solid #e3e9e3;
-  background: #fff;
+  border-right: 1px solid #223c63;
+  background: #10233f;
 }
 .sidebar-header {
   display: flex;
@@ -75,13 +75,13 @@ a {
   gap: 10px;
   height: 82px;
   padding: 0 24px;
-  border-bottom: 1px solid #edf1ed;
+  border-bottom: 1px solid #223c63;
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.05rem;
 }
 .sidebar-header span {
   display: block;
-  color: #d26935;
+  color: #60a5fa;
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -92,8 +92,8 @@ a {
   height: 42px;
   place-items: center;
   border-radius: 12px;
-  color: white;
-  background: #17352f;
+  color: #fff;
+  background: #2563eb;
   font-family: "Space Grotesk", sans-serif;
   font-weight: 700;
 }
@@ -109,7 +109,7 @@ a {
 }
 .nav-label {
   margin: 0 12px 10px;
-  color: #9aaba3;
+  color: #8da3c3;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -125,7 +125,7 @@ a {
   margin: 3px 0;
   padding: 11px 12px;
   border-radius: 9px;
-  color: #63766e;
+  color: #c2d0e4;
   font-size: 0.9rem;
   font-weight: 600;
   transition:
@@ -133,16 +133,16 @@ a {
     color 0.15s;
 }
 .nav-item:hover {
-  color: #17352f;
-  background: #f2f6f1;
+  color: #fff;
+  background: #1d3760;
 }
 .nav-item.active {
-  color: #17352f;
-  background: #e6f1e7;
+  color: #fff;
+  background: #2563eb;
 }
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid #edf1ed;
+  border-top: 1px solid #223c63;
 }
 .user-summary {
   display: flex;
@@ -159,11 +159,12 @@ a {
   white-space: nowrap;
 }
 .user-summary strong {
+  color: #fff;
   font-size: 0.8rem;
 }
 .user-summary span {
   margin-top: 3px;
-  color: #899a92;
+  color: #a9bad2;
   font-size: 0.7rem;
   text-transform: capitalize;
 }
@@ -174,8 +175,8 @@ a {
   flex: 0 0 32px;
   place-items: center;
   border-radius: 50%;
-  color: #17352f;
-  background: #dcecdf;
+  color: #dbeafe;
+  background: #1d4ed8;
   font-weight: 700;
 }
 .logout-button {
@@ -184,14 +185,14 @@ a {
   padding: 9px;
   border: 0;
   border-radius: 7px;
-  color: #b65b38;
+  color: #9db2ce;
   background: transparent;
   text-align: left;
   font-size: 0.8rem;
   font-weight: 600;
 }
 .logout-button:hover {
-  background: #fff4ef;
+  background: #1d3760;
 }
 .app-content {
   min-width: 0;
@@ -203,12 +204,13 @@ a {
   justify-content: space-between;
   min-height: 82px;
   padding: 18px 38px;
-  border-bottom: 1px solid #e7ece7;
+  border-bottom: 1px solid #e2e8f0;
   background: #fff;
 }
 .page-heading h1 {
   margin: 0;
   font-family: "Space Grotesk", sans-serif;
+  color: #172b4d;
   font-size: 1.25rem;
 }
 .page-heading p {
@@ -227,7 +229,7 @@ a {
   gap: 8px;
   width: 220px;
   padding: 9px 11px;
-  border: 1px solid #e1e8e1;
+  border: 1px solid #d6deea;
   border-radius: 8px;
   color: #91a099;
 }
@@ -235,7 +237,7 @@ a {
   width: 100%;
   border: 0;
   outline: 0;
-  color: #17352f;
+  color: #172b4d;
   font-size: 0.8rem;
 }
 .icon-button {
@@ -279,10 +281,10 @@ a {
 }
 .metric-card,
 .panel {
-  border: 1px solid #e3eae3;
+  border: 1px solid #e0e7f0;
   border-radius: 12px;
   background: #fff;
-  box-shadow: 0 5px 20px rgb(23 53 47 / 3%);
+  box-shadow: 0 8px 24px rgb(16 35 63 / 5%);
 }
 .toolbar {
   display: flex;
@@ -632,8 +634,8 @@ td span {
   place-items: center;
   margin-bottom: 20px;
   border-radius: 8px;
-  color: #d26935;
-  background: #fff2e9;
+  color: #2563eb;
+  background: #e8f0ff;
 }
 .metric-card > span {
   display: block;
@@ -659,6 +661,116 @@ td span {
   grid-template-columns: 1.5fr 1fr;
   gap: 16px;
   margin-top: 16px;
+}
+.dashboard-grid-primary {
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+}
+.dashboard-grid-secondary {
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+}
+.dashboard-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #ccebd8;
+  border-radius: 999px;
+  color: #197044;
+  background: #effbf3;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.panel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2563eb;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.map-preview-panel {
+  padding-bottom: 14px;
+}
+.dashboard-map {
+  height: 330px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid #edf1f7;
+  color: #172b4d;
+}
+.review-row > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.review-row strong,
+.review-row small {
+  display: block;
+}
+.review-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8rem;
+}
+.review-row small {
+  margin-top: 4px;
+  overflow: hidden;
+  color: #7788a0;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.review-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+}
+.progress-row {
+  padding: 11px 0;
+  border-top: 1px solid #edf1f7;
+}
+.progress-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: #536782;
+  font-size: 0.78rem;
+}
+.progress-row strong {
+  color: #172b4d;
+}
+.progress-track {
+  height: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e8eef6;
+}
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+}
+.quick-actions-panel > a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 0;
+  border-top: 1px solid #edf1f7;
+  color: #28518d;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.quick-actions-panel > a svg:last-child {
+  margin-left: auto;
+  color: #8ca0ba;
 }
 .panel {
   padding: 24px;
@@ -734,11 +846,11 @@ td span {
   border: 0;
   border-radius: 8px;
   color: #fff;
-  background: #17352f;
+  background: #2563eb;
   font-weight: 700;
 }
 .button:hover {
-  background: #28564b;
+  background: #1d4ed8;
 }
 .button:disabled {
   cursor: wait;
