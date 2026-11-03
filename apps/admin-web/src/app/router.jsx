@@ -3,7 +3,11 @@ import { AppLayout } from "../components/layout/AppLayout.jsx";
 import { ForgotPasswordPage } from "../features/auth/ForgotPasswordPage.jsx";
 import { LoginPage } from "../features/auth/LoginPage.jsx";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute.jsx";
-import { AnalyticsPage, ReportsPage, SettingsPage } from "../pages/modulePages.jsx";
+import {
+  AnalyticsPage,
+  ReportsPage,
+  SettingsPage,
+} from "../pages/modulePages.jsx";
 import { SurveysPage } from "../pages/SurveysPage.jsx";
 import { VillagesPage } from "../pages/VillagesPage.jsx";
 import { DashboardPage } from "../pages/DashboardPage.jsx";

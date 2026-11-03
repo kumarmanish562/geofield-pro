@@ -282,7 +282,11 @@ export async function getMyAssignment(id) {
 }
 
 export async function getSurveys(params = {}) {
-  const query = new URLSearchParams({ page: "1", pageSize: "50", ...params }).toString();
+  const query = new URLSearchParams({
+    page: "1",
+    pageSize: "50",
+    ...params,
+  }).toString();
   return request(`/surveys?${query}`);
 }
 
@@ -291,7 +295,10 @@ export async function createSurvey(data) {
 }
 
 export async function updateSurvey(id, data) {
-  return request(`/surveys/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+  return request(`/surveys/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function submitSurvey(id) {
