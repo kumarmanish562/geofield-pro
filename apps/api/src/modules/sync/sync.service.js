@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
+import { createNotification } from "../notifications/notifications.service.js";
 
 function fail(message, status, code, details) {
   const error = new AuthError(message, status, code);
@@ -51,8 +52,12 @@ export async function syncSurvey(actor, input) {
   }
   const existing = await prisma.survey.findUnique({ where: { clientSurveyId: input.clientSurveyId } });
   if (existing && existing.serverVersion !== input.version) {
-    const event = await prisma.syncEvent.create({
-      data: { clientEventId: input.clientEventId, employeeId: actor.userId, entityType: "SURVEY", entityId: input.clientSurveyId, operation: "UPSERT", payloadHash, payload: input, status: "CONFLICT" },
+    const event = await prisma.$transaction(async (tx) => {
+      const syncEvent = await tx.syncEvent.create({
+        data: { clientEventId: input.clientEventId, employeeId: actor.userId, entityType: "SURVEY", entityId: input.clientSurveyId, operation: "UPSERT", payloadHash, payload: input, status: "CONFLICT" },
+      });
+      await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: actor.userId, eventType: "SYNC_FAILED", title: "Survey sync needs your attention", body: "A survey changed on the server while you were offline. Refresh the survey and retry your updates.", resourceType: "SYNC_EVENT", resourceId: syncEvent.id, actionUrl: "/sync", metadata: { entityType: "SURVEY", errorCategory: "VERSION_CONFLICT", recovery: "Refresh the server copy before retrying." }, dedupeKey: `sync:${syncEvent.id}:intervention` });
+      return syncEvent;
     });
     return { ...result(existing, "CONFLICT"), conflict: { entityId: existing.id, clientVersion: input.version, serverVersion: existing.serverVersion, eventId: event.id } };
   }

@@ -345,6 +345,22 @@ The API health, readiness, and Swagger endpoints are:
 - `GET /api/v1/ready`
 - `GET /api/v1/docs`
 
+## Notifications
+
+Phase 15 notifications are persisted in PostgreSQL. Assignment, survey,
+attendance, and sync-intervention events create in-app records and durable
+delivery rows in their business transaction. The API process runs the
+database-backed delivery/reminder worker; multiple API instances coordinate
+through PostgreSQL row locks. Expo push is optional and off by default. See
+[`docs/phase-15-notifications/architecture.md`](docs/phase-15-notifications/architecture.md)
+for deployment and retry behavior.
+
+Set `NOTIFICATION_PUSH_ENABLED=true` and configure Expo credentials on the
+server to enable push delivery. Configure `EXPO_PUBLIC_EAS_PROJECT_ID` in the
+mobile build to register Expo push tokens. In-app history works without push.
+Email preferences are stored, but email delivery is not available until a
+provider is configured.
+
 ## Project Status
 
 Phase 01 is complete. The repository contains API, admin web, and employee

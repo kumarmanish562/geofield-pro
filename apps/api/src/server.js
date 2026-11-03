@@ -2,6 +2,7 @@ import { env } from "./config/env.js";
 import app from "./app.js";
 import { prisma } from "./database/prisma.js";
 import { attachSocketServer } from "./sockets/socket-server.js";
+import { startNotificationWorker, stopNotificationWorker } from "./modules/notifications/notifications.worker.js";
 
 async function startServer() {
   await prisma.$connect();
@@ -18,6 +19,7 @@ async function startServer() {
     );
   });
   attachSocketServer(server);
+  startNotificationWorker();
 
   return server;
 }
@@ -46,6 +48,7 @@ async function shutdown(signal) {
   }
 
   shuttingDown = true;
+  stopNotificationWorker();
 
   console.info(
     JSON.stringify({

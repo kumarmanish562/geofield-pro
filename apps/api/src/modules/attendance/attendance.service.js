@@ -1,5 +1,6 @@
 import { prisma } from "../../database/prisma.js";
 import { AuthError } from "../auth/auth.service.js";
+import { createNotification } from "../notifications/notifications.service.js";
 
 function fail(message, status, code) {
   throw new AuthError(message, status, code);
@@ -129,6 +130,10 @@ async function transition(actor, data, expected, next, eventType, beforeUpdate) 
     await tx.attendance.update({ where: { id: locked.id }, data: { status: next, version: { increment: 1 } } });
     await event(tx, locked, actor, { ...data, eventType }, now);
     await audit(tx, locked, actor, eventType, { status: expected }, { status: next });
+    if (["CHECK_IN", "CHECK_OUT"].includes(eventType)) {
+      const profile = await tx.employeeProfile.findUnique({ where: { userId: actor.userId }, select: { supervisorId: true } });
+      if (profile?.supervisorId) await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: profile.supervisorId, actorId: actor.userId, eventType: "ATTENDANCE_UPDATE", title: eventType === "CHECK_IN" ? "Employee checked in" : "Employee checked out", body: `An employee recorded ${eventType === "CHECK_IN" ? "a check-in" : "a check-out"}.`, resourceType: "ATTENDANCE", resourceId: locked.id, actionUrl: "/attendance", metadata: { attendanceEvent: eventType }, dedupeKey: `attendance:${locked.id}:${eventType}` });
+    }
     return tx.attendance.findUnique({ where: { id: locked.id }, include: includeAttendance() });
   }));
 }
@@ -186,7 +191,12 @@ export async function createCorrection(actor, attendanceId, data) {
   if (!attendance) fail("Attendance not found.", 404, "ATTENDANCE_NOT_FOUND");
   const pending = await prisma.attendanceCorrectionRequest.findFirst({ where: { attendanceId, status: "PENDING" } });
   if (pending) fail("A correction request is already pending.", 409, "CORRECTION_ALREADY_PENDING");
-  return prisma.attendanceCorrectionRequest.create({ data: { organizationId: actor.organizationId, attendanceId, employeeId: actor.userId, ...data } });
+  return prisma.$transaction(async (tx) => {
+    const correction = await tx.attendanceCorrectionRequest.create({ data: { organizationId: actor.organizationId, attendanceId, employeeId: actor.userId, ...data } });
+    const profile = await tx.employeeProfile.findUnique({ where: { userId: actor.userId }, select: { supervisorId: true } });
+    if (profile?.supervisorId) await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: profile.supervisorId, actorId: actor.userId, eventType: "ATTENDANCE_UPDATE", title: "Attendance correction requested", body: "An employee requested an attendance correction for your review.", resourceType: "ATTENDANCE", resourceId: attendanceId, actionUrl: "/attendance", metadata: { correctionId: correction.id }, dedupeKey: `attendance-correction:${correction.id}:requested` });
+    return correction;
+  });
 }
 
 export async function listCorrections(actor, mine = true) {
@@ -225,6 +235,7 @@ export async function reviewCorrection(actor, correctionId, decision, reviewComm
     const attendance = decision === "APPROVED" ? await tx.attendance.update({ where: { id: correction.attendanceId }, data: { checkedInAt: correction.requestedCheckInAt ?? correction.attendance.checkedInAt, checkedOutAt: correction.requestedCheckOutAt ?? correction.attendance.checkedOutAt, version: { increment: 1 } } }) : correction.attendance;
     await tx.attendanceEvent.create({ data: { attendanceId: attendance.id, employeeId: correction.employeeId, eventType: "CORRECTION_APPLIED", serverOccurredAt: new Date(), processingStatus: "PROCESSED", metadata: { correctionId, decision } } });
     await tx.attendanceAuditLog.create({ data: { organizationId: actor.organizationId, attendanceId: attendance.id, actorId: actor.userId, action: `CORRECTION_${decision}`, beforeState: { checkedInAt: correction.attendance.checkedInAt, checkedOutAt: correction.attendance.checkedOutAt }, afterState: { checkedInAt: attendance.checkedInAt, checkedOutAt: attendance.checkedOutAt }, reason: reviewComment } });
+    await createNotification({ client: tx, organizationId: actor.organizationId, recipientId: correction.employeeId, actorId: actor.userId, eventType: "ATTENDANCE_UPDATE", title: `Attendance correction ${decision.toLowerCase()}`, body: reviewComment?.trim() ? reviewComment.trim().slice(0, 500) : `Your attendance correction was ${decision.toLowerCase()}.`, resourceType: "ATTENDANCE", resourceId: attendance.id, actionUrl: "/attendance", metadata: { correctionId, decision }, dedupeKey: `attendance-correction:${correctionId}:${decision}` });
     return tx.attendanceCorrectionRequest.findUnique({ where: { id: correctionId }, include: { attendance: true } });
   });
 }

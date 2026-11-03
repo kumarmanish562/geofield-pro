@@ -386,3 +386,55 @@ export async function resubmitSurvey(
     body: JSON.stringify({}),
   });
 }
+
+export async function getNotifications({
+  page = 1,
+  pageSize = 20,
+  unreadOnly = false,
+  readOnly = false,
+} = {}) {
+  const query = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+    unreadOnly: String(unreadOnly),
+    readOnly: String(readOnly),
+  });
+  return request(`/notifications?${query}`);
+}
+
+export async function getNotificationUnreadCount() {
+  return request("/notifications/unread-count");
+}
+
+export async function markNotificationRead(id) {
+  return request(`/notifications/${id}/read`, { method: "PATCH" });
+}
+
+export async function markAllNotificationsRead() {
+  return request("/notifications/read-all", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function getNotificationPreferences() {
+  return request("/notification-preferences");
+}
+
+export async function updateNotificationPreferences(preferences) {
+  return request("/notification-preferences", {
+    method: "PUT",
+    body: JSON.stringify({ preferences }),
+  });
+}
+
+export async function registerPushDevice(
+  expoPushToken,
+  devicePlatform,
+  deviceName,
+) {
+  return request("/push-devices/register", {
+    method: "POST",
+    body: JSON.stringify({ expoPushToken, devicePlatform, deviceName }),
+  });
+}

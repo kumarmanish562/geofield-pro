@@ -7,3 +7,9 @@ export const USER_ROLES = Object.freeze([
   "GIS_ANALYST",
   "EMPLOYEE",
 ]);
+
+export {
+  NotificationCategory,
+  NotificationType,
+  notificationCategory,
+} from "./notifications.js";

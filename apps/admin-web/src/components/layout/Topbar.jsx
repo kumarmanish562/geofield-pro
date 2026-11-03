@@ -1,5 +1,6 @@
-import { Menu, Bell, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { NotificationsBell } from "./NotificationsBell.jsx";
 
 const titles = {
   "/dashboard": ["Dashboard", "A clear view of your field operations."],
@@ -16,6 +17,14 @@ const titles = {
   "/analytics": ["Analytics", "Understand progress across your organization."],
   "/reports": ["Reports", "Generate operational reports."],
   "/settings": ["Settings", "Configure your organization workspace."],
+  "/notifications": [
+    "Notifications",
+    "Your operational updates and review activity.",
+  ],
+  "/settings/notifications": [
+    "Notification preferences",
+    "Choose how you receive operational updates.",
+  ],
 };
 
 export function Topbar({ onMenu }) {
@@ -39,9 +48,7 @@ export function Topbar({ onMenu }) {
           <Search size={17} />
           <input placeholder="Search workspace" aria-label="Search workspace" />
         </div>
-        <button className="icon-button" aria-label="Notifications">
-          <Bell size={19} />
-        </button>
+        <NotificationsBell />
       </div>
     </header>
   );

@@ -12,13 +12,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@geofield/shared-constants": "workspace:*",
     "@react-navigation/bottom-tabs": "^7.21.0",
     "@react-navigation/native": "^7.5.1",
     "@react-navigation/native-stack": "^7.21.0",
     "expo": "~54.0.0",
+    "expo-device": "~8.0.10",
     "expo-image-picker": "~17.0.11",
     "expo-location": "~19.0.7",
     "expo-network": "~8.0.8",
+    "expo-notifications": "~0.32.17",
     "expo-secure-store": "~14.2.4",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.8",

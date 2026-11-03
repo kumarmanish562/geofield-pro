@@ -119,6 +119,15 @@ export const envSchema = z.object({
     .int()
     .positive()
     .default(20),
+
+  NOTIFICATION_PUSH_ENABLED: booleanFromString.default(false),
+  EXPO_ACCESS_TOKEN: z.string().optional().default(""),
+  EXPO_PUSH_API_URL: z.string().url().default("https://exp.host/--/api/v2/push/send"),
+  NOTIFICATION_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(5),
+  NOTIFICATION_RETRY_BASE_DELAY_MS: z.coerce.number().int().min(1000).default(30000),
+  NOTIFICATION_BATCH_SIZE: z.coerce.number().int().min(1).max(100).default(50),
+  NOTIFICATION_WORKER_INTERVAL_MS: z.coerce.number().int().min(5000).default(15000),
+  NOTIFICATION_DEADLINE_REMINDER_DAYS: z.string().default("1,3"),
 });
 
 export function parseEnv(input) {
