@@ -346,6 +346,33 @@ const openApiDocument = {
       [`${env.API_PREFIX}/surveys/{id}/submit`]: {
         post: { summary: "Submit a survey idempotently", security: [{ BearerAuth: [] }], parameters: [{ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }], responses: { "200": { description: "Server-confirmed submission returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
       },
+      [`${env.API_PREFIX}/surveys/{id}/resubmit`]: {
+        post: { summary: "Resubmit a corrected survey idempotently", security: [{ BearerAuth: [] }], parameters: [{ name: "Idempotency-Key", in: "header", required: true, schema: { type: "string" } }], responses: { "200": { description: "Resubmitted survey returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
+      },
+      [`${env.API_PREFIX}/survey-reviews`]: {
+        get: { summary: "List authorized survey reviews", security: [{ BearerAuth: [] }], responses: { "200": { description: "Review queue returned." } } }
+      },
+      [`${env.API_PREFIX}/survey-reviews/{id}/approve`]: {
+        post: { summary: "Approve a survey", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey approved." } } }
+      },
+      [`${env.API_PREFIX}/survey-reviews/{id}/reject`]: {
+        post: { summary: "Reject a survey with a reason", security: [{ BearerAuth: [] }], responses: { "200": { description: "Survey rejected." } } }
+      },
+      [`${env.API_PREFIX}/survey-reviews/{id}/request-correction`]: {
+        post: { summary: "Request survey corrections", security: [{ BearerAuth: [] }], responses: { "200": { description: "Correction request recorded." } } }
+      },
+      [`${env.API_PREFIX}/survey-reviews/{id}/history`]: {
+        get: { summary: "Get immutable survey review history", security: [{ BearerAuth: [] }], responses: { "200": { description: "Review history returned." } } }
+      },
+      [`${env.API_PREFIX}/reports/surveys/summary`]: {
+        get: { summary: "Get survey report summary", security: [{ BearerAuth: [] }], responses: { "200": { description: "Report summary returned." } } }
+      },
+      [`${env.API_PREFIX}/reports/surveys/export/csv`]: {
+        get: { summary: "Export authorized survey data as CSV", security: [{ BearerAuth: [] }], responses: { "200": { description: "CSV report returned." } } }
+      },
+      [`${env.API_PREFIX}/reports/surveys/export/excel`]: {
+        get: { summary: "Export authorized survey data as Excel-compatible workbook", security: [{ BearerAuth: [] }], responses: { "200": { description: "Excel report returned." } } }
+      },
       [`${env.API_PREFIX}/sync/surveys`]: {
         post: { summary: "Synchronize an offline survey idempotently", security: [{ BearerAuth: [] }], responses: { "200": { description: "Synchronization result returned." }, "409": { $ref: "#/components/schemas/ErrorResponse" } } }
       },

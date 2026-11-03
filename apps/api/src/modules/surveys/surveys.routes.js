@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../auth/auth.middleware.js";
 import { attachmentSchema, reviewSchema, submissionSchema, surveyCreateSchema, surveyListSchema, surveyUpdateSchema } from "./surveys.schemas.js";
-import { createSurvey, deleteSurvey, getSurvey, getSurveyStats, listReviewQueue, listSurveys, reviewSurvey, submitSurvey, updateSurvey } from "./surveys.service.js";
+import { createSurvey, deleteSurvey, getSurvey, getSurveyStats, listReviewQueue, listSurveys, resubmitSurvey, reviewSurvey, submitSurvey, updateSurvey } from "./surveys.service.js";
 import { completeUpload, createUpload, deleteAttachment, listAttachments } from "../../services/storage/s3.js";
 
 const router = Router();
@@ -18,6 +18,7 @@ router.get("/:id", handle(async (req, res) => res.json({ success: true, data: aw
 router.patch("/:id", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = surveyUpdateSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Survey details are invalid."); return res.json({ success: true, data: await updateSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
 router.delete("/:id", authorize("EMPLOYEE"), handle(async (req, res) => { await deleteSurvey(req.auth, req.params.id); return res.status(204).send(); }));
 router.post("/:id/submit", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = submissionSchema.safeParse({ idempotencyKey: req.get("Idempotency-Key") ?? req.body?.idempotencyKey }); if (!parsed.success) return invalid(res, req, parsed, "A valid Idempotency-Key header is required."); return res.json({ success: true, data: await submitSurvey(req.auth, req.params.id, parsed.data.idempotencyKey), requestId: req.id }); }));
+router.post("/:id/resubmit", authorize("EMPLOYEE"), handle(async (req, res) => { const parsed = submissionSchema.safeParse({ idempotencyKey: req.get("Idempotency-Key") ?? req.body?.idempotencyKey }); if (!parsed.success) return invalid(res, req, parsed, "A valid Idempotency-Key header is required."); return res.json({ success: true, data: await resubmitSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
 router.patch("/:id/review", authorize(...reviewRoles), handle(async (req, res) => { const parsed = reviewSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Review details are invalid."); return res.json({ success: true, data: await reviewSurvey(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
 router.post("/:id/attachments/presign", handle(async (req, res) => { const parsed = attachmentSchema.safeParse(req.body); if (!parsed.success) return invalid(res, req, parsed, "Attachment metadata is invalid."); return res.json({ success: true, data: await createUpload(req.auth, req.params.id, parsed.data), requestId: req.id }); }));
 router.post("/:id/attachments/:attachmentId/complete", handle(async (req, res) => res.json({ success: true, data: await completeUpload(req.auth, req.params.id, req.params.attachmentId), requestId: req.id })));

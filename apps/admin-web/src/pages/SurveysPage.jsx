@@ -15,7 +15,7 @@ export function SurveysPage() {
   async function load() {
     setError("");
     try {
-      const response = await apiClient.get("/admin/surveys", {
+      const response = await apiClient.get("/survey-reviews", {
         params: { page: 1, pageSize: 50, status: filter || undefined },
       });
       setData(response.data.data);
@@ -27,18 +27,21 @@ export function SurveysPage() {
     load();
   }, [filter]);
 
-  async function review(id, reviewStatus) {
+  async function review(id, action) {
+    const required = action !== "approve";
     const reviewNotes =
-      reviewStatus === "REJECTED"
-        ? window.prompt("Rejection reason")
-        : window.prompt("Review notes (optional)") || "";
-    if (reviewStatus === "REJECTED" && !reviewNotes) return;
+      window.prompt(
+        required
+          ? "Enter the reason or correction instructions"
+          : "Optional review comments",
+      ) || "";
+    if (required && !reviewNotes) return;
     setReviewing(id);
     try {
-      await apiClient.patch(`/admin/surveys/${id}/review`, {
-        reviewStatus,
-        reviewNotes,
-      });
+      await apiClient.post(
+        `/survey-reviews/${id}/${action === "correction" ? "request-correction" : action}`,
+        { comments: reviewNotes },
+      );
       await load();
     } catch (reason) {
       setError(getApiErrorMessage(reason));
@@ -69,6 +72,7 @@ export function SurveysPage() {
             <option value="UNDER_REVIEW">Under review</option>
             <option value="APPROVED">Approved</option>
             <option value="REJECTED">Rejected</option>
+            <option value="CORRECTION_REQUIRED">Correction required</option>
           </select>
         </div>
         {error ? <ErrorState onRetry={load} /> : null}
@@ -123,16 +127,23 @@ export function SurveysPage() {
                           <button
                             className="button button-secondary"
                             disabled={reviewing === survey.id}
-                            onClick={() => review(survey.id, "APPROVED")}
+                            onClick={() => review(survey.id, "approve")}
                           >
                             Approve
                           </button>{" "}
                           <button
                             className="button button-danger"
                             disabled={reviewing === survey.id}
-                            onClick={() => review(survey.id, "REJECTED")}
+                            onClick={() => review(survey.id, "reject")}
                           >
                             Reject
+                          </button>
+                          <button
+                            className="button button-secondary"
+                            disabled={reviewing === survey.id}
+                            onClick={() => review(survey.id, "correction")}
+                          >
+                            Request correction
                           </button>
                         </>
                       ) : (

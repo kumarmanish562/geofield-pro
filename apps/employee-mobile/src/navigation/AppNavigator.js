@@ -18,6 +18,7 @@ import { SettingsScreen } from "../screens/SettingsScreen.js";
 import { AssignmentDetailsScreen } from "../screens/AssignmentDetailsScreen.js";
 import { ReportDetailsScreen } from "../screens/ReportDetailsScreen.js";
 import { SyncDashboardScreen } from "../screens/SyncDashboardScreen.js";
+import { SurveyReviewScreen } from "../screens/SurveyReviewScreen.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -94,6 +95,11 @@ function ReportsStack() {
         name="Survey"
         component={SurveyScreen}
         options={{ title: "Survey" }}
+      />
+      <Stack.Screen
+        name="SurveyReview"
+        component={SurveyReviewScreen}
+        options={{ title: "Survey review" }}
       />
     </Stack.Navigator>
   );

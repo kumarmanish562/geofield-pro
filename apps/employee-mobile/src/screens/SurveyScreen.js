@@ -23,6 +23,7 @@ import {
   getAssignedVillages,
   getMyAssignments,
   getSurveys,
+  resubmitSurvey,
   submitSurvey,
   updateSurvey,
   uploadSurveyPhoto,
@@ -39,7 +40,7 @@ const initialForm = {
   notes: "",
 };
 
-export function SurveyScreen() {
+export function SurveyScreen({ navigation, route }) {
   const online = useNetwork();
   const [data, setData] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -55,11 +56,35 @@ export function SurveyScreen() {
     setError("");
     Promise.all([getSurveys(), getMyAssignments(), getAssignedVillages()])
       .then(([surveyResponse, assignmentResponse, villageResponse]) => {
-        setData({
+        const nextData = {
           items: surveyResponse.data.items,
           assignments: assignmentResponse.data.items,
           villages: villageResponse.data.items,
-        });
+        };
+        setData(nextData);
+        const existing = route?.params?.surveyId
+          ? nextData.items.find((item) => item.id === route.params.surveyId)
+          : null;
+        if (existing) {
+          setForm({
+            assignmentId: existing.assignmentId,
+            villageId: existing.villageId,
+            gatNumber: existing.gatNumber,
+            plotNumber: existing.plotNumber ?? "",
+            notes: existing.notes ?? "",
+          });
+          setLocation(
+            existing.latitude === null || existing.longitude === null
+              ? null
+              : {
+                  latitude: existing.latitude,
+                  longitude: existing.longitude,
+                  gpsAccuracy: existing.gpsAccuracy,
+                },
+          );
+          setDraft({ ...existing, serverSurveyId: existing.id });
+          setCreating(true);
+        }
       })
       .catch((reason) => setError(reason.message));
   }, []);
@@ -134,6 +159,12 @@ export function SurveyScreen() {
         plotNumber: form.plotNumber || null,
         notes: form.notes || null,
       };
+      if (draft?.serverSurveyId) {
+        await updateSurvey(draft.serverSurveyId, payload);
+        setDraft({ ...draft, ...payload });
+        setResult(null);
+        return;
+      }
       const queued = enqueueSurvey(payload);
       setDraft({
         ...payload,
@@ -190,7 +221,10 @@ export function SurveyScreen() {
                   photo,
                   photo.clientAttachmentId,
                 );
-              const response = await submitSurvey(serverSurveyId);
+              const response =
+                draft.status === "CORRECTION_REQUIRED"
+                  ? await resubmitSurvey(serverSurveyId)
+                  : await submitSurvey(serverSurveyId);
               setResult(response.data);
               setCreating(false);
               setDraft(null);
@@ -408,6 +442,14 @@ export function SurveyScreen() {
             <Text style={{ color: "#d26935", marginTop: 5, fontWeight: "700" }}>
               {item.status}
             </Text>
+            <Button
+              onPress={() =>
+                navigation.navigate("SurveyReview", { surveyId: item.id })
+              }
+              variant="secondary"
+            >
+              View review
+            </Button>
           </View>
         )}
       />

@@ -121,6 +121,7 @@ enum SurveyStatus {
   UNDER_REVIEW
   APPROVED
   REJECTED
+  CORRECTION_REQUIRED
 
   @@map("survey_status")
 }
@@ -136,6 +137,7 @@ enum SurveyUploadStatus {
 enum SurveyReviewStatus {
   APPROVED
   REJECTED
+  CORRECTION_REQUIRED
 
   @@map("survey_review_status")
 }
@@ -655,6 +657,9 @@ model SurveyReview {
   surveyId     String             @map("survey_id") @db.Uuid
   reviewedBy   String             @map("reviewed_by") @db.Uuid
   reviewStatus SurveyReviewStatus @map("review_status")
+  action       String             @default("REVIEW") @db.VarChar(40)
+  previousStatus SurveyStatus?    @map("previous_status")
+  newStatus    SurveyStatus?      @map("new_status")
   reviewNotes  String?            @map("review_notes") @db.VarChar(2000)
   reviewedAt   DateTime           @default(now()) @map("reviewed_at")
   createdAt    DateTime           @default(now()) @map("created_at")

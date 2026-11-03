@@ -13,11 +13,17 @@ export function SurveyDetailsPage() {
   const [survey, setSurvey] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState([]);
+  const [working, setWorking] = useState(false);
 
   async function load() {
     try {
       const response = await apiClient.get(`/admin/surveys/${id}`);
       setSurvey(response.data.data);
+      const historyResponse = await apiClient.get(
+        `/survey-reviews/${id}/history`,
+      );
+      setHistory(historyResponse.data.data);
       try {
         const attachmentResponse = await apiClient.get(
           `/admin/surveys/${id}/attachments`,
@@ -90,6 +96,103 @@ export function SurveyDetailsPage() {
           </dl>
           <h4>Field notes</h4>
           <p>{survey.notes || "No field notes."}</p>
+          {["SUBMITTED", "UNDER_REVIEW"].includes(survey.status) ? (
+            <div className="quick-actions">
+              <button
+                className="button button-secondary"
+                disabled={working}
+                onClick={async () => {
+                  setWorking(true);
+                  try {
+                    await apiClient.post(`/survey-reviews/${id}/approve`, {
+                      comments: "",
+                    });
+                    await load();
+                  } catch (reason) {
+                    setError(getApiErrorMessage(reason));
+                  } finally {
+                    setWorking(false);
+                  }
+                }}
+              >
+                Approve
+              </button>
+              <button
+                className="button button-danger"
+                disabled={working}
+                onClick={async () => {
+                  const comments = window.prompt("Rejection reason");
+                  if (!comments) return;
+                  setWorking(true);
+                  try {
+                    await apiClient.post(`/survey-reviews/${id}/reject`, {
+                      comments,
+                    });
+                    await load();
+                  } catch (reason) {
+                    setError(getApiErrorMessage(reason));
+                  } finally {
+                    setWorking(false);
+                  }
+                }}
+              >
+                Reject
+              </button>
+              <button
+                className="button button-secondary"
+                disabled={working}
+                onClick={async () => {
+                  const comments = window.prompt("Correction instructions");
+                  if (!comments) return;
+                  setWorking(true);
+                  try {
+                    await apiClient.post(
+                      `/survey-reviews/${id}/request-correction`,
+                      { comments },
+                    );
+                    await load();
+                  } catch (reason) {
+                    setError(getApiErrorMessage(reason));
+                  } finally {
+                    setWorking(false);
+                  }
+                }}
+              >
+                Request correction
+              </button>
+            </div>
+          ) : null}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h3>Review history</h3>
+              <p>Immutable workflow actions and reviewer comments.</p>
+            </div>
+          </div>
+          {history.length ? (
+            <div className="timeline">
+              {history.map((item) => (
+                <article className="timeline-item" key={item.id}>
+                  <strong>{item.action}</strong>
+                  <span>
+                    {item.previousStatus ?? "—"} →{" "}
+                    {item.newStatus ?? item.reviewStatus}
+                  </span>
+                  <p>{item.reviewNotes || "No comments."}</p>
+                  <small>
+                    {item.reviewer?.name} ·{" "}
+                    {new Date(item.reviewedAt).toLocaleString()}
+                  </small>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No review history"
+              description="Review actions will appear here."
+            />
+          )}
         </section>
         <section className="panel">
           <div className="panel-heading">
