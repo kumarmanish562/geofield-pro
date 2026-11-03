@@ -52,7 +52,8 @@ jobs:
 
   api:
     name: API - Install, Migrate, Build and Test
-    runs-on: ubuntu-latest
+    # Keep the runner's PostgreSQL 16 client aligned with the PostGIS 16 service.
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -140,6 +141,8 @@ jobs:
           set -Eeuo pipefail
           dump_file="$RUNNER_TEMP/geofield-test.dump"
 
+          pg_dump --version
+          pg_restore --version
           echo "Creating custom-format database backup"
           pg_dump --format=custom --no-owner --no-privileges \
             --dbname="$DATABASE_URL" --file="$dump_file"
