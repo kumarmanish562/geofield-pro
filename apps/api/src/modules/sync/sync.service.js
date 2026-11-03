@@ -46,11 +46,35 @@ export async function syncSurvey(actor, input) {
   const payloadHash = hashPayload(input);
   const duplicateEvent = await prisma.syncEvent.findUnique({ where: { clientEventId: input.clientEventId } });
   if (duplicateEvent) {
-    const survey = await prisma.survey.findUnique({ where: { clientSurveyId: input.clientSurveyId } });
+    if (
+      duplicateEvent.employeeId !== actor.userId ||
+      duplicateEvent.entityId !== input.clientSurveyId ||
+      duplicateEvent.payloadHash !== payloadHash
+    ) {
+      fail("The synchronization event cannot be reused.", 409, "SYNC_EVENT_REUSED");
+    }
+
+    const survey = await prisma.survey.findFirst({
+      where: {
+        clientSurveyId: input.clientSurveyId,
+        employeeId: actor.userId,
+        organizationId: actor.organizationId,
+      },
+    });
     if (survey) return result(survey, duplicateEvent.status === "CONFLICT" ? "CONFLICT" : "SYNCED");
     fail("The synchronization event was already processed.", 409, "DUPLICATE_SYNC_EVENT");
   }
-  const existing = await prisma.survey.findUnique({ where: { clientSurveyId: input.clientSurveyId } });
+
+  const existing = await prisma.survey.findUnique({
+    where: { clientSurveyId: input.clientSurveyId },
+  });
+  if (
+    existing &&
+    (existing.employeeId !== actor.userId ||
+      existing.organizationId !== actor.organizationId)
+  ) {
+    fail("This offline survey identifier is already in use.", 409, "SURVEY_ID_REUSED");
+  }
   if (existing && existing.serverVersion !== input.version) {
     const event = await prisma.$transaction(async (tx) => {
       const syncEvent = await tx.syncEvent.create({
@@ -110,7 +134,12 @@ export async function syncAttachment(actor, input) {
   const survey = await prisma.survey.findFirst({ where: { id: input.surveyId, organizationId: actor.organizationId, employeeId: actor.userId }, select: { id: true } });
   if (!survey) fail("Survey is not owned by this employee.", 403, "SURVEY_FORBIDDEN");
   const existing = await prisma.surveyAttachment.findUnique({ where: { clientAttachmentId: input.clientAttachmentId } });
-  if (existing) return { attachmentId: existing.id, status: "SYNCED", duplicate: true };
+  if (existing) {
+    if (existing.surveyId !== input.surveyId || existing.uploadedBy !== actor.userId) {
+      fail("This attachment identifier is already in use.", 409, "ATTACHMENT_ID_REUSED");
+    }
+    return { attachmentId: existing.id, status: "SYNCED", duplicate: true };
+  }
   const event = await prisma.syncEvent.findUnique({ where: { clientEventId: input.clientEventId } });
   if (event) fail("The synchronization event was already processed.", 409, "DUPLICATE_SYNC_EVENT");
   return { status: "READY_FOR_UPLOAD", clientAttachmentId: input.clientAttachmentId };

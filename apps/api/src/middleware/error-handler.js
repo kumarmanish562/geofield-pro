@@ -22,10 +22,12 @@ export function errorHandler(error, req, res, next) {
 
   req.log?.error(
     {
-      err: error,
-      requestId: req.id
+      errorName: error.name,
+      errorCode: error.code ?? (isMalformedJson ? "MALFORMED_JSON" : undefined),
+      statusCode: status,
+      requestId: req.id,
     },
-    "Request failed"
+    "Request failed",
   );
 
   res.status(status).json({

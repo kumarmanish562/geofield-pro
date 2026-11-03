@@ -12,7 +12,7 @@ const metadata = z.object({
 }).strict();
 
 export const villageCreateSchema = metadata.extend({ geometry: z.unknown().optional() });
-export const villageUpdateSchema = metadata.partial();
+export const villageUpdateSchema = metadata.partial().extend({ geometry: z.unknown().optional() });
 export const villageListSchema = z.object({
   search: z.string().trim().max(120).optional(),
   district: z.string().trim().max(120).optional(),

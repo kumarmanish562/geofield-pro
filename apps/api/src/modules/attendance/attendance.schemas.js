@@ -3,13 +3,18 @@ import { z } from "zod";
 const uuid = z.string().uuid();
 const idempotencyKey = z.string().trim().min(8).max(160);
 const clientDate = z.coerce.date().optional();
+const isTooFarInFuture = (date) => date && date.getTime() > Date.now() + 5 * 60 * 1000;
 
 export const attendanceMutationSchema = z.object({
   idempotencyKey,
   clientEventId: idempotencyKey.optional(),
   clientOccurredAt: clientDate,
   metadata: z.record(z.string(), z.unknown()).optional(),
-}).strict();
+}).strict().superRefine((value, context) => {
+  if (isTooFarInFuture(value.clientOccurredAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["clientOccurredAt"], message: "Attendance timestamps cannot be more than five minutes in the future." });
+  }
+});
 
 export const syncSchema = z.object({
   events: z.array(z.object({
@@ -18,7 +23,11 @@ export const syncSchema = z.object({
     clientOccurredAt: z.coerce.date(),
     idempotencyKey: idempotencyKey.optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
-  }).strict()).min(1).max(100),
+  }).strict().superRefine((event, context) => {
+    if (isTooFarInFuture(event.clientOccurredAt)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["clientOccurredAt"], message: "Attendance timestamps cannot be more than five minutes in the future." });
+    }
+  })).min(1).max(100),
 }).strict();
 
 export const attendanceHistorySchema = z.object({
@@ -38,6 +47,12 @@ export const correctionCreateSchema = z.object({
   requestedCheckOutAt: z.coerce.date().optional(),
   reason: z.string().trim().min(10).max(1000),
 }).strict().superRefine((value, context) => {
+  if (value.requestedCheckInAt && isTooFarInFuture(value.requestedCheckInAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["requestedCheckInAt"], message: "Corrected timestamps cannot be in the future." });
+  }
+  if (value.requestedCheckOutAt && isTooFarInFuture(value.requestedCheckOutAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["requestedCheckOutAt"], message: "Corrected timestamps cannot be in the future." });
+  }
   if (!value.requestedCheckInAt && !value.requestedCheckOutAt) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ["requestedCheckInAt"], message: "At least one corrected timestamp is required." });
   }

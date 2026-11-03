@@ -41,6 +41,12 @@ jobs:
       - name: Lint JavaScript
         run: pnpm lint
 
+      - name: Test Admin Web
+        run: pnpm test:web
+
+      - name: Test Employee Mobile
+        run: pnpm test:mobile
+
       - name: Build applications
         run: pnpm build:all
 
@@ -65,7 +71,7 @@ jobs:
 
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://geofield:test_password@localhost:5432/geofield_test?schema=public
+      DATABASE_URL: postgresql://geofield:test_password@localhost:5432/geofield_test
       JWT_ISSUER: geofield-pro-api
       JWT_AUDIENCE: geofield-pro-tests
       JWT_ACCESS_TOKEN_TTL_SECONDS: 900
@@ -126,8 +132,60 @@ jobs:
             }
           '
 
+      - name: Verify isolated backup and restore
+        env:
+          PGPASSWORD: test_password
+          RESTORE_DATABASE_URL: postgresql://geofield:test_password@localhost:5432/geofield_restore_test
+        run: |
+          pg_dump --format=custom --no-owner --no-privileges \
+            --dbname="$DATABASE_URL" --file="$RUNNER_TEMP/geofield-test.dump"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE geofield_restore_test'
+          pg_restore --no-owner --no-privileges \
+            --dbname="$RESTORE_DATABASE_URL" "$RUNNER_TEMP/geofield-test.dump"
+          source_counts=$(psql "$DATABASE_URL" -tA -F ',' -c \
+            "SELECT (SELECT count(*) FROM organizations), (SELECT count(*) FROM users), (SELECT count(*) FROM villages), (SELECT count(*) FROM location_observations), (SELECT count(*) FROM villages WHERE boundary IS NOT NULL), coalesce(sum(length(ST_AsEWKB(boundary))), 0) FROM villages")
+          restored_counts=$(psql "$RESTORE_DATABASE_URL" -tA -F ',' -c \
+            "SELECT (SELECT count(*) FROM organizations), (SELECT count(*) FROM users), (SELECT count(*) FROM villages), (SELECT count(*) FROM location_observations), (SELECT count(*) FROM villages WHERE boundary IS NOT NULL), coalesce(sum(length(ST_AsEWKB(boundary))), 0) FROM villages")
+          test "$source_counts" = "$restored_counts"
+          psql "$RESTORE_DATABASE_URL" -v ON_ERROR_STOP=1 -c \
+            'SELECT PostGIS_Full_Version()'
+
       - name: Build API
         run: pnpm --filter @geofield/api build
 
-      - name: Run automated tests
-        run: pnpm --filter @geofield/api test
+      - name: Run API tests with coverage
+        run: pnpm --filter @geofield/api test:coverage
+
+      - name: Upload API coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage
+          if-no-files-found: ignore
+          retention-days: 14
+
+  dependency-audit:
+    name: Dependency vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high

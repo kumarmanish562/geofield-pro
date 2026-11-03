@@ -9,7 +9,11 @@ export const observationSchema = z.object({
   longitude: z.coerce.number().min(-180).max(180),
   accuracyMeters: z.coerce.number().finite().min(0).max(10000).optional(),
   capturedAt: z.coerce.date(),
-}).strict();
+}).strict().superRefine((value, context) => {
+  if (value.capturedAt.getTime() > Date.now() + 5 * 60 * 1000) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["capturedAt"], message: "Location timestamps cannot be more than five minutes in the future." });
+  }
+});
 
 export const locationListSchema = z.object({
   employeeId: uuid.optional(),

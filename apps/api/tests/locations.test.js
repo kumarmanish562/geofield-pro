@@ -24,6 +24,15 @@ describe("location tracking", () => {
     }).success).toBe(false);
   });
 
+  it("rejects future location timestamps", () => {
+    expect(observationSchema.safeParse({
+      eventId: "location-event-future",
+      latitude: 21,
+      longitude: 81,
+      capturedAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    }).success).toBe(false);
+  });
+
   it("requires authentication for organization location data", async () => {
     const response = await request(app).get("/api/v1/admin/locations/latest").expect(401);
     expect(response.body.error.code).toBe("AUTHENTICATION_REQUIRED");

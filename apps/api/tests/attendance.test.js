@@ -17,4 +17,16 @@ describe("attendance management", () => {
   it("does not allow a correction without a proposed timestamp", () => {
     expect(correctionCreateSchema.safeParse({ reason: "Please correct my attendance record." }).success).toBe(false);
   });
+
+  it("rejects future client event and correction timestamps", () => {
+    const future = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    expect(attendanceMutationSchema.safeParse({
+      idempotencyKey: "event-key-123",
+      clientOccurredAt: future,
+    }).success).toBe(false);
+    expect(correctionCreateSchema.safeParse({
+      requestedCheckInAt: future,
+      reason: "The attendance timestamp needs correction.",
+    }).success).toBe(false);
+  });
 });
