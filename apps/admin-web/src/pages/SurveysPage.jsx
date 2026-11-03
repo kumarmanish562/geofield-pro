@@ -119,7 +119,7 @@ export function SurveysPage() {
                       </small>
                     </td>
                     <td>
-                      <span className="status-pill">{survey.status}</span>
+                      <span className={`status-pill status-${survey.status.toLowerCase()}`}>{survey.status}</span>
                     </td>
                     <td>
                       {["SUBMITTED", "UNDER_REVIEW"].includes(survey.status) ? (

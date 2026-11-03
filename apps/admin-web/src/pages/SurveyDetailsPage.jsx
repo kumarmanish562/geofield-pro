@@ -73,7 +73,7 @@ export function SurveyDetailsPage() {
           <div className="panel-heading">
             <div>
               <h3>Survey information</h3>
-              <p className="status-pill">{survey.status}</p>
+              <p className={`status-pill status-${survey.status.toLowerCase()}`}>{survey.status}</p>
             </div>
           </div>
           <dl className="details-list">
