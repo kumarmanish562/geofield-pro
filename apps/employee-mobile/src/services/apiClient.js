@@ -280,3 +280,24 @@ export async function getMyAssignments(params = {}) {
 export async function getMyAssignment(id) {
   return request(`/me/assignments/${id}`);
 }
+
+export async function getSurveys(params = {}) {
+  const query = new URLSearchParams({ page: "1", pageSize: "50", ...params }).toString();
+  return request(`/surveys?${query}`);
+}
+
+export async function createSurvey(data) {
+  return request("/surveys", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateSurvey(id, data) {
+  return request(`/surveys/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export async function submitSurvey(id) {
+  return request(`/surveys/${id}/submit`, {
+    method: "POST",
+    headers: { "Idempotency-Key": `mobile-survey-${id}-${Date.now()}` },
+    body: JSON.stringify({}),
+  });
+}
