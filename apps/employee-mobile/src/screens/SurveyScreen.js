@@ -44,7 +44,10 @@ export function SurveyScreen({ navigation, route }) {
   const online = useNetwork();
   const [data, setData] = useState(null);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState({
+    ...initialForm,
+    assignmentId: route?.params?.assignmentId ?? "",
+  });
   const [location, setLocation] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [draft, setDraft] = useState(null);
@@ -83,6 +86,12 @@ export function SurveyScreen({ navigation, route }) {
                 },
           );
           setDraft({ ...existing, serverSurveyId: existing.id });
+          setCreating(true);
+        } else if (route?.params?.assignmentId) {
+          setForm((current) => ({
+            ...current,
+            assignmentId: route.params.assignmentId,
+          }));
           setCreating(true);
         }
       })
@@ -260,42 +269,45 @@ export function SurveyScreen({ navigation, route }) {
     );
     return (
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        <Screen>
+        <Screen style={surveyStyles.screen}>
+          <Text style={surveyStyles.eyebrow}>FIELD DATA</Text>
           <Text
-            style={{
-              color: "#06432f",
-              fontSize: 22,
-              fontWeight: "700",
-              marginBottom: 18,
-            }}
+            style={surveyStyles.title}
           >
-            New field survey
+            Create survey
           </Text>
+          <Text style={surveyStyles.subtitle}>Record a field visit against an assignment and authorized village.</Text>
           <Text
-            style={{ color: "#35465b", fontWeight: "700", marginBottom: 8 }}
+            style={surveyStyles.sectionTitle}
           >
-            Authorized assignment
+            01 · Authorized assignment
           </Text>
+          <View style={surveyStyles.selectionCard}>
           {data.assignments.map((item) => (
             <Pressable
               key={item.id}
               onPress={() => setForm({ ...form, assignmentId: item.id })}
               style={{
-                padding: 12,
-                marginBottom: 6,
+                padding: 13,
+                marginBottom: 5,
                 borderRadius: 9,
+                borderWidth: 1,
+                borderColor: item.id === form.assignmentId ? "#087c72" : "#edf0f5",
                 backgroundColor:
-                  item.id === form.assignmentId ? "#dcecdf" : "#fff",
+                  item.id === form.assignmentId ? "#d7f8f1" : "#ffffff",
               }}
             >
               <Text style={{ color: "#06432f" }}>{item.name}</Text>
             </Pressable>
           ))}
+          {!data.assignments.length ? <Text style={surveyStyles.emptyChoice}>No authorized assignments are available.</Text> : null}
+          </View>
           <Text
-            style={{ color: "#35465b", fontWeight: "700", marginVertical: 8 }}
+            style={surveyStyles.sectionTitle}
           >
-            Authorized village
+            02 · Authorized village
           </Text>
+          <View style={surveyStyles.selectionCard}>
           {data.villages.map((item) => (
             <Pressable
               key={item.id}
@@ -304,8 +316,10 @@ export function SurveyScreen({ navigation, route }) {
                 padding: 12,
                 marginBottom: 6,
                 borderRadius: 9,
+                borderWidth: 1,
+                borderColor: item.id === form.villageId ? "#087c72" : "#edf0f5",
                 backgroundColor:
-                  item.id === form.villageId ? "#dcecdf" : "#fff",
+                  item.id === form.villageId ? "#d7f8f1" : "#ffffff",
               }}
             >
               <Text style={{ color: "#06432f" }}>
@@ -313,6 +327,10 @@ export function SurveyScreen({ navigation, route }) {
               </Text>
             </Pressable>
           ))}
+          {!data.villages.length ? <Text style={surveyStyles.emptyChoice}>No assigned villages are available.</Text> : null}
+          </View>
+          <Text style={surveyStyles.sectionTitle}>03 · Field details</Text>
+          <View style={surveyStyles.formCard}>
           <Field
             label="Gat number"
             value={form.gatNumber}
@@ -329,6 +347,10 @@ export function SurveyScreen({ navigation, route }) {
             onChangeText={(value) => setForm({ ...form, notes: value })}
             multiline
           />
+          </View>
+          <Text style={surveyStyles.sectionTitle}>04 · Location and evidence</Text>
+          <View style={surveyStyles.formCard}>
+          <Text style={surveyStyles.evidenceCopy}>Capture the current location and attach up to five photos when relevant.</Text>
           <Button onPress={captureLocation} variant="secondary">
             {location
               ? `GPS captured (${location.gpsAccuracy.toFixed(1)}m)`
@@ -357,6 +379,7 @@ export function SurveyScreen({ navigation, route }) {
               />
             ))}
           </ScrollView>
+          </View>
           {draft ? (
             <>
               <Text style={{ color: "#35465b", marginBottom: 8 }}>
@@ -388,7 +411,10 @@ export function SurveyScreen({ navigation, route }) {
   }
 
   return (
-    <Screen>
+    <Screen style={surveyStyles.screen}>
+      <Text style={surveyStyles.eyebrow}>FIELD DATA</Text>
+      <Text style={surveyStyles.title}>Surveys</Text>
+      <Text style={surveyStyles.subtitle}>Drafts and submissions linked to your authorized field work.</Text>
       {result ? (
         <View
           style={{
@@ -456,3 +482,15 @@ export function SurveyScreen({ navigation, route }) {
     </Screen>
   );
 }
+
+const surveyStyles = {
+  screen: { paddingTop: 14, backgroundColor: "#f4f6ff" },
+  eyebrow: { color: "#087c72", fontSize: 10, fontWeight: "900", letterSpacing: 1.3, marginBottom: 4 },
+  title: { color: "#06432f", fontSize: 25, fontWeight: "800", marginBottom: 4 },
+  subtitle: { color: "#536579", fontSize: 12, lineHeight: 18, marginBottom: 13 },
+  sectionTitle: { color: "#0b1c30", fontSize: 13, fontWeight: "800", marginTop: 11, marginBottom: 7 },
+  selectionCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#e0e7f1", borderRadius: 13, padding: 7 },
+  emptyChoice: { color: "#536579", fontSize: 11, padding: 10 },
+  formCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#e0e7f1", borderRadius: 13, padding: 12, gap: 8 },
+  evidenceCopy: { color: "#536579", fontSize: 10, lineHeight: 15, marginBottom: 4 },
+};

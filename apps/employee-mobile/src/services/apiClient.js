@@ -284,6 +284,10 @@ export async function getAssignedVillages() {
   return request("/villages?page=1&pageSize=50");
 }
 
+export async function getAssignedVillageBoundary(villageId) {
+  return request(`/villages/${encodeURIComponent(villageId)}`);
+}
+
 export async function getMyAssignments(params = {}) {
   const query = new URLSearchParams({
     page: "1",

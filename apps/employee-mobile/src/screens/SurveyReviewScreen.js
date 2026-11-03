@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Button, EmptyState, LoadingView, Screen } from "../components/ui.js";
 import {
@@ -60,13 +60,19 @@ export function SurveyReviewScreen({ route, navigation }) {
   }
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-      <Screen>
-        <Text style={{ color: "#06432f", fontSize: 22, fontWeight: "700" }}>
+      <Screen style={styles.screen}>
+        <Text style={styles.eyebrow}>FIELD REVIEW</Text>
+        <Text style={styles.title}>
           {survey.surveyNumber}
         </Text>
-        <Text style={{ color: "#087c72", fontWeight: "700", marginTop: 8 }}>
+        <Text style={styles.subtitle}>Review status and submission history</Text>
+        <View style={styles.statusCard}>
+        <Text style={styles.statusLabel}>CURRENT STATUS</Text>
+        <Text style={styles.status}>
           {survey.status}
         </Text>
+        {survey.village?.name ? <Text style={styles.village}>{survey.village.name}{survey.gatNumber ? ` · Gat ${survey.gatNumber}` : ""}</Text> : null}
+        </View>
         {survey.status === "CORRECTION_REQUIRED" ? (
           <View
             style={{
@@ -74,6 +80,8 @@ export function SurveyReviewScreen({ route, navigation }) {
               padding: 14,
               borderRadius: 10,
               marginTop: 14,
+              borderWidth: 1,
+              borderColor: "#f1d6a8",
             }}
           >
             <Text style={{ color: "#7a4d16", fontWeight: "700" }}>
@@ -97,17 +105,16 @@ export function SurveyReviewScreen({ route, navigation }) {
             </Button>
           </View>
         ) : null}
-        <Text style={{ color: "#35465b", fontWeight: "700", marginTop: 20 }}>
-          Submission history
-        </Text>
+        <View style={styles.historyHeading}><Text style={styles.sectionTitle}>Submission history</Text><Text style={styles.historyCount}>{history.length} events</Text></View>
+        <View style={styles.historyCard}>
         {history.map((item) => (
           <View
             key={item.id}
             style={{
               backgroundColor: "#fff",
-              borderRadius: 10,
               padding: 12,
-              marginTop: 8,
+              borderBottomWidth: 1,
+              borderBottomColor: "#e8edf5",
             }}
           >
             <Text style={{ color: "#06432f", fontWeight: "700" }}>
@@ -126,7 +133,25 @@ export function SurveyReviewScreen({ route, navigation }) {
             </Text>
           </View>
         ))}
+        {!history.length ? <Text style={styles.noHistory}>No review events are available yet.</Text> : null}
+        </View>
       </Screen>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { paddingTop: 14, backgroundColor: "#f4f6ff" },
+  eyebrow: { color: "#087c72", fontSize: 10, fontWeight: "900", letterSpacing: 1.3 },
+  title: { color: "#06432f", fontSize: 23, fontWeight: "800", marginTop: 4 },
+  subtitle: { color: "#536579", fontSize: 11, marginTop: 4, marginBottom: 12 },
+  statusCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#e0e7f1", borderRadius: 14, padding: 14 },
+  statusLabel: { color: "#536579", fontSize: 8, fontWeight: "900", letterSpacing: 1 },
+  status: { color: "#087c72", fontSize: 15, fontWeight: "800", marginTop: 6 },
+  village: { color: "#536579", fontSize: 10, marginTop: 5 },
+  historyHeading: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 20, marginBottom: 8 },
+  sectionTitle: { color: "#0b1c30", fontWeight: "800", fontSize: 15 },
+  historyCount: { color: "#536579", fontSize: 9, fontFamily: "monospace" },
+  historyCard: { overflow: "hidden", backgroundColor: "#fff", borderRadius: 13, borderWidth: 1, borderColor: "#e0e7f1" },
+  noHistory: { color: "#536579", padding: 14, fontSize: 11 },
+});

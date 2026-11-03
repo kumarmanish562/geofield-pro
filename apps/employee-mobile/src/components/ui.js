@@ -59,8 +59,12 @@ export function Field({ label, error, ...props }) {
 export function LoadingView({ label = "Loading..." }) {
   return (
     <View style={styles.center}>
-      <ActivityIndicator color="#d26935" />
-      <Text style={styles.muted}>{label}</Text>
+      <View style={styles.loadingMark}>
+        <Text style={styles.loadingLetters}>GF</Text>
+      </View>
+      <Text style={styles.loadingBrand}>GeoField Pro</Text>
+      <ActivityIndicator color="#087c72" />
+      <Text style={styles.loadingLabel}>{label}</Text>
     </View>
   );
 }
@@ -103,6 +107,17 @@ export const styles = StyleSheet.create({
   error: { color: "#b42318", fontSize: 13 },
   muted: { color: "#536579", lineHeight: 21, textAlign: "center" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
+  loadingMark: {
+    width: 54,
+    height: 54,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+    backgroundColor: "#06432f",
+  },
+  loadingLetters: { color: "#fff", fontSize: 17, fontWeight: "900" },
+  loadingBrand: { color: "#06432f", fontSize: 17, fontWeight: "800" },
+  loadingLabel: { color: "#536579", fontSize: 12 },
   empty: {
     alignItems: "center",
     justifyContent: "center",

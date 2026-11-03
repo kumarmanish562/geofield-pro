@@ -5,7 +5,9 @@ import {
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Text } from "react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { Platform } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import * as SecureStore from "expo-secure-store";
 import { useAuth } from "../context/AuthContext.js";
 import { LoadingView } from "../components/ui.js";
 import { AuthScreen } from "../screens/AuthScreen.js";
@@ -24,6 +26,8 @@ import { ReportDetailsScreen } from "../screens/ReportDetailsScreen.js";
 import { SyncDashboardScreen } from "../screens/SyncDashboardScreen.js";
 import { SurveyReviewScreen } from "../screens/SurveyReviewScreen.js";
 import { NotificationsScreen } from "../screens/NotificationsScreen.js";
+import { WelcomeScreen } from "../screens/WelcomeScreen.js";
+import { ActiveSessionScreen } from "../screens/ActiveSessionScreen.js";
 import { openNotificationTarget } from "./notificationNavigation.js";
 
 const Tab = createBottomTabNavigator();
@@ -49,6 +53,7 @@ function HomeStack() {
     <Stack.Navigator screenOptions={stackOptions}>
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Attendance" component={AttendanceScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ActiveSession" component={ActiveSessionScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="OfflineSync"
@@ -193,6 +198,33 @@ const stackOptions = {
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
   const responseSubscription = useRef(null);
+  const [welcomeSeen, setWelcomeSeen] = useState(null);
+  useEffect(() => {
+    async function restoreWelcomeState() {
+      try {
+        const value =
+          Platform.OS === "web"
+            ? window.localStorage.getItem("geofield.welcome_seen")
+            : await SecureStore.getItemAsync("geofield.welcome_seen");
+        setWelcomeSeen(value === "true");
+      } catch {
+        setWelcomeSeen(false);
+      }
+    }
+    void restoreWelcomeState();
+  }, []);
+  const completeWelcome = useCallback(() => {
+    setWelcomeSeen(true);
+    if (Platform.OS === "web") {
+      try {
+        window.localStorage.setItem("geofield.welcome_seen", "true");
+      } catch {}
+    } else {
+      void SecureStore.setItemAsync("geofield.welcome_seen", "true").catch(
+        () => {},
+      );
+    }
+  }, []);
   const handlePushResponse = useCallback(
     (response) => {
       const data = response?.notification?.request?.content?.data;
@@ -230,7 +262,8 @@ export function AppNavigator() {
       responseSubscription.current?.remove();
     };
   }, [handlePushResponse]);
-  if (isLoading) return <LoadingView label="Restoring secure session..." />;
+  if (isLoading || welcomeSeen === null)
+    return <LoadingView label="Preparing your field workspace..." />;
   return (
     <NavigationContainer
       ref={navigationRef}
@@ -252,7 +285,15 @@ export function AppNavigator() {
       {isAuthenticated ? (
         <MainTabs />
       ) : (
-        <Stack.Navigator>
+        <Stack.Navigator initialRouteName={welcomeSeen ? "SignIn" : "Welcome"}>
+          <Stack.Screen
+            name="Welcome"
+            options={{ headerShown: false }}
+          >
+            {(props) => (
+              <WelcomeScreen {...props} onContinue={completeWelcome} />
+            )}
+          </Stack.Screen>
           <Stack.Screen
             name="SignIn"
             component={AuthScreen}

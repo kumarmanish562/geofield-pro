@@ -18,7 +18,7 @@ import {
   synchronizeAttendanceEvents,
 } from "../services/apiClient.js";
 
-export function AttendanceScreen() {
+export function AttendanceScreen({ navigation }) {
   const online = useNetwork();
   const [current, setCurrent] = useState(null);
   const [history, setHistory] = useState([]);
@@ -138,6 +138,11 @@ export function AttendanceScreen() {
             </View>
           ) : null}
         </View>
+        {["WORKING", "ON_BREAK"].includes(current?.status) ? (
+          <Button variant="secondary" onPress={() => navigation.navigate("ActiveSession")}>
+            View active work session  →
+          </Button>
+        ) : null}
         {nextAction ? (
           <Button loading={working} onPress={() => action(nextAction[0])}>
             {nextAction[1]}
