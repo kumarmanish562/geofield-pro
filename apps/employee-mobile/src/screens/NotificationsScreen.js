@@ -229,10 +229,10 @@ export function NotificationsScreen({ navigation }) {
   return (
     <Screen style={{ padding: 0 }}>
       <View style={{ padding: 20, gap: 12, flex: 1 }}>
-        <Text style={{ color: "#17352f", fontSize: 24, fontWeight: "800" }}>
+        <Text style={{ color: "#06432f", fontSize: 24, fontWeight: "800" }}>
           Notifications
         </Text>
-        <Text style={{ color: "#71837a" }}>{unreadCount} unread</Text>
+        <Text style={{ color: "#536579" }}>{unreadCount} unread</Text>
         <View style={{ flexDirection: "row", gap: 8 }}>
           <Button
             variant={tab === "all" ? "primary" : "secondary"}
@@ -308,18 +308,18 @@ export function NotificationsScreen({ navigation }) {
               style={{
                 padding: 14,
                 borderRadius: 10,
-                backgroundColor: item.readAt ? "#fff" : "#eaf1e8",
+                backgroundColor: item.readAt ? "#fff" : "#e7effb",
                 marginBottom: 9,
                 gap: 5,
               }}
             >
               <Text
-                style={{ color: "#d26935", fontSize: 11, fontWeight: "800" }}
+                style={{ color: "#087c72", fontSize: 11, fontWeight: "800" }}
               >
                 {categoryFor(item.eventType)} {item.readAt ? "" : "· UNREAD"}
               </Text>
               <Text
-                style={{ color: "#17352f", fontSize: 15, fontWeight: "800" }}
+                style={{ color: "#06432f", fontSize: 15, fontWeight: "800" }}
               >
                 {item.title}
               </Text>
@@ -333,7 +333,7 @@ export function NotificationsScreen({ navigation }) {
           )}
         />
         {loading && items.length > 0 ? (
-          <Text style={{ textAlign: "center", color: "#71837a" }}>
+          <Text style={{ textAlign: "center", color: "#536579" }}>
             Loading more…
           </Text>
         ) : null}

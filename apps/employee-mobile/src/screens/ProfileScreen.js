@@ -27,27 +27,27 @@ export function ProfileScreen({ navigation }) {
 }
 const styles = StyleSheet.create({
   eyebrow: {
-    color: "#d26935",
+    color: "#087c72",
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.5,
     marginTop: 20,
   },
   title: {
-    color: "#17352f",
+    color: "#06432f",
     fontSize: 30,
     fontWeight: "800",
     marginVertical: 24,
   },
   card: {
     backgroundColor: "#fff",
-    borderColor: "#e3eae3",
+    borderColor: "#e0e7f1",
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 20,
     padding: 20,
   },
-  name: { color: "#17352f", fontSize: 20, fontWeight: "800", marginBottom: 8 },
-  detail: { color: "#71837a", marginTop: 5 },
+  name: { color: "#06432f", fontSize: 20, fontWeight: "800", marginBottom: 8 },
+  detail: { color: "#536579", marginTop: 5 },
   spacer: { height: 12 },
 });

@@ -263,7 +263,7 @@ export function SurveyScreen({ navigation, route }) {
         <Screen>
           <Text
             style={{
-              color: "#17352f",
+              color: "#06432f",
               fontSize: 22,
               fontWeight: "700",
               marginBottom: 18,
@@ -272,7 +272,7 @@ export function SurveyScreen({ navigation, route }) {
             New field survey
           </Text>
           <Text
-            style={{ color: "#50665d", fontWeight: "700", marginBottom: 8 }}
+            style={{ color: "#35465b", fontWeight: "700", marginBottom: 8 }}
           >
             Authorized assignment
           </Text>
@@ -288,11 +288,11 @@ export function SurveyScreen({ navigation, route }) {
                   item.id === form.assignmentId ? "#dcecdf" : "#fff",
               }}
             >
-              <Text style={{ color: "#17352f" }}>{item.name}</Text>
+              <Text style={{ color: "#06432f" }}>{item.name}</Text>
             </Pressable>
           ))}
           <Text
-            style={{ color: "#50665d", fontWeight: "700", marginVertical: 8 }}
+            style={{ color: "#35465b", fontWeight: "700", marginVertical: 8 }}
           >
             Authorized village
           </Text>
@@ -308,7 +308,7 @@ export function SurveyScreen({ navigation, route }) {
                   item.id === form.villageId ? "#dcecdf" : "#fff",
               }}
             >
-              <Text style={{ color: "#17352f" }}>
+              <Text style={{ color: "#06432f" }}>
                 {item.name} ({item.code})
               </Text>
             </Pressable>
@@ -359,7 +359,7 @@ export function SurveyScreen({ navigation, route }) {
           </ScrollView>
           {draft ? (
             <>
-              <Text style={{ color: "#50665d", marginBottom: 8 }}>
+              <Text style={{ color: "#35465b", marginBottom: 8 }}>
                 Draft saved: {draft.surveyNumber} ({draft.status})
               </Text>
               <Button onPress={submitDraft} loading={working}>
@@ -376,9 +376,9 @@ export function SurveyScreen({ navigation, route }) {
             Cancel
           </Button>
           {error ? (
-            <Text style={{ color: "#b43e35", marginTop: 12 }}>{error}</Text>
+            <Text style={{ color: "#b42318", marginTop: 12 }}>{error}</Text>
           ) : null}
-          <Text style={{ color: "#71837a", marginTop: 14 }}>
+          <Text style={{ color: "#536579", marginTop: 14 }}>
             Selected: {selectedAssignment?.name ?? "No assignment"} ·{" "}
             {selectedVillage?.name ?? "No village"}
           </Text>
@@ -398,10 +398,10 @@ export function SurveyScreen({ navigation, route }) {
             marginBottom: 14,
           }}
         >
-          <Text style={{ color: "#17352f", fontWeight: "700" }}>
+          <Text style={{ color: "#06432f", fontWeight: "700" }}>
             Survey submitted successfully
           </Text>
-          <Text style={{ color: "#50665d", marginTop: 4 }}>
+          <Text style={{ color: "#35465b", marginTop: 4 }}>
             {result.surveyNumber} · {result.status}
           </Text>
         </View>
@@ -433,13 +433,13 @@ export function SurveyScreen({ navigation, route }) {
               marginBottom: 10,
             }}
           >
-            <Text style={{ color: "#17352f", fontWeight: "700" }}>
+            <Text style={{ color: "#06432f", fontWeight: "700" }}>
               {item.surveyNumber}
             </Text>
-            <Text style={{ color: "#71837a", marginTop: 5 }}>
+            <Text style={{ color: "#536579", marginTop: 5 }}>
               Gat {item.gatNumber} · {item.village?.name ?? "Village"}
             </Text>
-            <Text style={{ color: "#d26935", marginTop: 5, fontWeight: "700" }}>
+            <Text style={{ color: "#087c72", marginTop: 5, fontWeight: "700" }}>
               {item.status}
             </Text>
             <Button

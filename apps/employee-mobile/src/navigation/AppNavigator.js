@@ -4,8 +4,8 @@ import {
 } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Text, View } from "react-native";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Text } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.js";
 import { LoadingView } from "../components/ui.js";
 import { AuthScreen } from "../screens/AuthScreen.js";
@@ -24,53 +24,18 @@ import { ReportDetailsScreen } from "../screens/ReportDetailsScreen.js";
 import { SyncDashboardScreen } from "../screens/SyncDashboardScreen.js";
 import { SurveyReviewScreen } from "../screens/SurveyReviewScreen.js";
 import { NotificationsScreen } from "../screens/NotificationsScreen.js";
-import { getNotificationUnreadCount } from "../services/apiClient.js";
 import { openNotificationTarget } from "./notificationNavigation.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef();
 
-function NotificationTabIcon({ focused }) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let active = true;
-    const refresh = async () => {
-      try {
-        const result = await getNotificationUnreadCount();
-        if (active) setCount(result.data.unreadCount);
-      } catch (error) {
-        console.warn("Unread notification count unavailable:", error.message);
-      }
-    };
-    void refresh();
-    const timer = setInterval(refresh, 60000);
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
-  }, []);
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Text
-        style={{
-          color: focused ? "#d26935" : "#71837a",
-          fontSize: 11,
-          fontWeight: "700",
-        }}
-      >
-        ALERTS{count ? ` ${count > 99 ? "99+" : count}` : ""}
-      </Text>
-    </View>
-  );
-}
-
 function TabIcon({ label, focused }) {
   return (
     <Text
       style={{
-        color: focused ? "#d26935" : "#71837a",
-        fontSize: 11,
+        color: focused ? "#06432f" : "#718096",
+        fontSize: 21,
         fontWeight: "700",
       }}
     >
@@ -81,9 +46,10 @@ function TabIcon({ label, focused }) {
 
 function HomeStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Attendance" component={AttendanceScreen} />
+    <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Attendance" component={AttendanceScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="OfflineSync"
         component={SyncDashboardScreen}
@@ -95,8 +61,8 @@ function HomeStack() {
 
 function AssignmentsStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Assignments" component={AssignmentsScreen} />
+    <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Screen name="Assignments" component={AssignmentsScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="AssignmentDetails"
         component={AssignmentDetailsScreen}
@@ -113,16 +79,16 @@ function AssignmentsStack() {
 
 function MapStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Map" component={MapScreen} />
+    <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
 
 function ReportsStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Reports" component={ReportsScreen} />
+    <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Screen name="Reports" component={ReportsScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="ReportDetails"
         component={ReportDetailsScreen}
@@ -149,21 +115,9 @@ function ReportsStack() {
 
 function ProfileStack() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Navigator screenOptions={stackOptions}>
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
-    </Stack.Navigator>
-  );
-}
-
-function NotificationsStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Notifications"
-        component={NotificationsScreen}
-        options={{ title: "Notifications" }}
-      />
     </Stack.Navigator>
   );
 }
@@ -173,9 +127,16 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#d26935",
-        tabBarInactiveTintColor: "#71837a",
-        tabBarStyle: { height: 62, paddingBottom: 8, paddingTop: 8 },
+        tabBarActiveTintColor: "#06432f",
+        tabBarInactiveTintColor: "#718096",
+        tabBarLabelStyle: { fontSize: 10, fontWeight: "700" },
+        tabBarStyle: {
+          height: 66,
+          paddingBottom: 8,
+          paddingTop: 5,
+          borderTopColor: "#e0e7f1",
+          backgroundColor: "#ffffff",
+        },
       }}
     >
       <Tab.Screen
@@ -183,9 +144,7 @@ function MainTabs() {
         component={HomeStack}
         options={{
           title: "Home",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="HOME" focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon label="\u2302" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -193,9 +152,7 @@ function MainTabs() {
         component={AssignmentsStack}
         options={{
           title: "Assignments",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="WORK" focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon label="\u25a4" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -203,9 +160,7 @@ function MainTabs() {
         component={MapStack}
         options={{
           title: "Map",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="MAP" focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon label="\u25ce" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -213,19 +168,7 @@ function MainTabs() {
         component={ReportsStack}
         options={{
           title: "Reports",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="REPORTS" focused={focused} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="NotificationsTab"
-        component={NotificationsStack}
-        options={{
-          title: "Alerts",
-          tabBarIcon: ({ focused }) => (
-            <NotificationTabIcon focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon label="\u25a5" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -233,14 +176,19 @@ function MainTabs() {
         component={ProfileStack}
         options={{
           title: "Profile",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="PROFILE" focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon label="\u2659" focused={focused} />,
         }}
       />
     </Tab.Navigator>
   );
 }
+
+const stackOptions = {
+  headerStyle: { backgroundColor: "#f4f6ff" },
+  headerTintColor: "#06432f",
+  headerTitleStyle: { color: "#0b1c30", fontWeight: "700" },
+  contentStyle: { backgroundColor: "#f4f6ff" },
+};
 
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();

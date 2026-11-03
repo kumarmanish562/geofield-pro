@@ -61,10 +61,10 @@ export function SurveyReviewScreen({ route, navigation }) {
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
       <Screen>
-        <Text style={{ color: "#17352f", fontSize: 22, fontWeight: "700" }}>
+        <Text style={{ color: "#06432f", fontSize: 22, fontWeight: "700" }}>
           {survey.surveyNumber}
         </Text>
-        <Text style={{ color: "#d26935", fontWeight: "700", marginTop: 8 }}>
+        <Text style={{ color: "#087c72", fontWeight: "700", marginTop: 8 }}>
           {survey.status}
         </Text>
         {survey.status === "CORRECTION_REQUIRED" ? (
@@ -97,7 +97,7 @@ export function SurveyReviewScreen({ route, navigation }) {
             </Button>
           </View>
         ) : null}
-        <Text style={{ color: "#50665d", fontWeight: "700", marginTop: 20 }}>
+        <Text style={{ color: "#35465b", fontWeight: "700", marginTop: 20 }}>
           Submission history
         </Text>
         {history.map((item) => (
@@ -110,17 +110,17 @@ export function SurveyReviewScreen({ route, navigation }) {
               marginTop: 8,
             }}
           >
-            <Text style={{ color: "#17352f", fontWeight: "700" }}>
+            <Text style={{ color: "#06432f", fontWeight: "700" }}>
               {item.action}
             </Text>
-            <Text style={{ color: "#71837a", marginTop: 4 }}>
+            <Text style={{ color: "#536579", marginTop: 4 }}>
               {item.previousStatus ?? "—"} →{" "}
               {item.newStatus ?? item.reviewStatus}
             </Text>
-            <Text style={{ color: "#50665d", marginTop: 4 }}>
+            <Text style={{ color: "#35465b", marginTop: 4 }}>
               {item.reviewNotes || "No comments."}
             </Text>
-            <Text style={{ color: "#71837a", marginTop: 4 }}>
+            <Text style={{ color: "#536579", marginTop: 4 }}>
               {item.reviewer?.name || "Employee"} ·{" "}
               {new Date(item.reviewedAt).toLocaleString()}
             </Text>

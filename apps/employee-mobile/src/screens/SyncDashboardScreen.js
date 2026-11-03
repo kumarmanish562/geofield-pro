@@ -31,12 +31,12 @@ export function SyncDashboardScreen() {
   const pending = (summary.queue.PENDING ?? 0) + (summary.queue.FAILED ?? 0);
   return (
     <Screen>
-      <Text style={{ color: "#17352f", fontSize: 24, fontWeight: "800" }}>
+      <Text style={{ color: "#06432f", fontSize: 24, fontWeight: "800" }}>
         Offline sync
       </Text>
       <Text
         style={{
-          color: online ? "#2d7a4b" : "#b43e35",
+          color: online ? "#2d7a4b" : "#b42318",
           marginTop: 8,
           fontWeight: "700",
         }}
@@ -72,7 +72,7 @@ export function SyncDashboardScreen() {
         <View style={{ marginTop: 22 }}>
           <Text
             style={{
-              color: "#17352f",
+              color: "#06432f",
               fontSize: 18,
               fontWeight: "800",
               marginBottom: 8,
@@ -84,7 +84,7 @@ export function SyncDashboardScreen() {
             <Text
               key={item.id}
               style={{
-                color: item.result === "SYNCED" ? "#2d7a4b" : "#b43e35",
+                color: item.result === "SYNCED" ? "#2d7a4b" : "#b42318",
                 marginBottom: 6,
               }}
             >

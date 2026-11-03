@@ -72,7 +72,7 @@ export function SettingsScreen() {
     <Screen>
       <Text
         style={{
-          color: "#17352f",
+          color: "#06432f",
           fontSize: 24,
           fontWeight: "800",
           marginBottom: 8,
@@ -80,12 +80,12 @@ export function SettingsScreen() {
       >
         Notification preferences
       </Text>
-      <Text style={{ color: "#71837a", marginBottom: 16 }}>
+      <Text style={{ color: "#536579", marginBottom: 16 }}>
         Choose how you receive field updates. Critical updates stay in-app.
       </Text>
       {error ? (
         <View>
-          <Text style={{ color: "#b43e35", marginBottom: 12 }}>{error}</Text>
+          <Text style={{ color: "#b42318", marginBottom: 12 }}>{error}</Text>
           <Button variant="secondary" onPress={refresh}>
             Try again
           </Button>
@@ -102,14 +102,14 @@ export function SettingsScreen() {
                   justifyContent: "space-between",
                   paddingVertical: 12,
                   borderBottomWidth: 1,
-                  borderBottomColor: "#e4ebe3",
+                  borderBottomColor: "#e0e7f1",
                 }}
               >
-                <Text style={{ color: "#17352f", flex: 1, fontWeight: "600" }}>
+                <Text style={{ color: "#06432f", flex: 1, fontWeight: "600" }}>
                   {titles[item.eventType] ?? item.eventType}
                 </Text>
                 <View style={{ alignItems: "center", width: 62 }}>
-                  <Text style={{ color: "#71837a", fontSize: 10 }}>IN-APP</Text>
+                  <Text style={{ color: "#536579", fontSize: 10 }}>IN-APP</Text>
                   <Switch
                     value={
                       mandatoryInApp.has(item.eventType) || item.inAppEnabled
@@ -119,7 +119,7 @@ export function SettingsScreen() {
                   />
                 </View>
                 <View style={{ alignItems: "center", width: 62 }}>
-                  <Text style={{ color: "#71837a", fontSize: 10 }}>PUSH</Text>
+                  <Text style={{ color: "#536579", fontSize: 10 }}>PUSH</Text>
                   <Switch
                     value={item.pushEnabled}
                     onValueChange={() => toggle(item.eventType, "pushEnabled")}
