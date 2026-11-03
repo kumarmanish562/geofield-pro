@@ -17,55 +17,58 @@ import { EmptyState } from "../components/ui/EmptyState.jsx";
 import apiClient from "../services/apiClient.js";
 
 export function DashboardPage() {
-  const [stats, setStats] = useState(null);
-  const [summary, setSummary] = useState(null);
+  const [surveyAnalytics, setSurveyAnalytics] = useState(null);
   const [surveys, setSurveys] = useState([]);
+  const [overview, setOverview] = useState(null);
   useEffect(() => {
     Promise.all([
-      apiClient.get("/admin/surveys/stats"),
-      apiClient.get("/reports/surveys/summary"),
+      apiClient.get("/analytics/overview"),
+      apiClient.get("/analytics/surveys", { params: { page: 1, pageSize: 8 } }),
       apiClient.get("/admin/surveys", {
         params: { page: 1, pageSize: 8, status: "SUBMITTED" },
       }),
     ])
-      .then(([statsResponse, summaryResponse, surveysResponse]) => {
-        setStats(statsResponse.data.data);
-        setSummary(summaryResponse.data.data);
+      .then(([overviewResponse, analyticsResponse, surveysResponse]) => {
+        setOverview(overviewResponse.data.data);
+        setSurveyAnalytics(analyticsResponse.data.data);
         setSurveys(surveysResponse.data.data.items);
       })
       .catch(() => toast.error("Some dashboard metrics are unavailable."));
   }, []);
   const metrics = [
     [
-      "Total surveys",
-      stats?.total ?? "—",
-      "All recorded field submissions",
+      "Total employees",
+      overview?.totalEmployees ?? "—",
+      "Active employee accounts",
       Activity,
     ],
     [
-      "Pending review",
-      summary?.pending ?? "—",
-      "Needs reviewer attention",
+      "Active attendance",
+      overview?.activeAttendance ?? "—",
+      "Confirmed check-ins currently working",
       ClipboardCheck,
     ],
     [
-      "Approved surveys",
-      summary?.approved ?? "—",
-      "Accepted by reviewers",
+      "Active assignments",
+      overview?.activeAssignments ?? "—",
+      "Published or paused assignments",
       Users,
     ],
     [
-      "Correction required",
-      summary?.correctionRequired ?? "—",
-      "Returned to employees",
+      "Villages",
+      overview?.villages ?? "—",
+      "Active villages in organization",
       MapPinned,
     ],
+    ["Completed surveys", overview?.completedSurveys ?? "—", "Approved by a reviewer", Activity],
+    ["Awaiting review", overview?.awaitingReview ?? "—", "Submitted or under review", ClipboardCheck],
   ];
   const points = useMemo(
     () =>
       surveys.filter(
         (survey) =>
-          Number.isFinite(survey.latitude) && Number.isFinite(survey.longitude),
+          Number.isFinite(Number(survey.latitude)) &&
+          Number.isFinite(Number(survey.longitude)),
       ),
     [surveys],
   );
@@ -87,7 +90,7 @@ export function DashboardPage() {
               <Icon size={19} />
             </div>
             <span>{label}</span>
-            <strong>{values[label] ?? value}</strong>
+            <strong>{value}</strong>
             <small>{hint}</small>
           </article>
         ))}
@@ -105,7 +108,7 @@ export function DashboardPage() {
           </div>
           {points.length ? (
             <MapContainer
-              center={[points[0].latitude, points[0].longitude]}
+              center={[Number(points[0].latitude), Number(points[0].longitude)]}
               zoom={11}
               className="dashboard-map"
               scrollWheelZoom={false}
@@ -117,7 +120,7 @@ export function DashboardPage() {
               {points.map((survey) => (
                 <CircleMarker
                   key={survey.id}
-                  center={[survey.latitude, survey.longitude]}
+                  center={[Number(survey.latitude), Number(survey.longitude)]}
                   radius={7}
                   pathOptions={{
                     color: "#2563eb",
@@ -185,8 +188,8 @@ export function DashboardPage() {
               Reports <ArrowUpRight size={15} />
             </Link>
           </div>
-          {summary?.villageWise?.length ? (
-            summary.villageWise.slice(0, 6).map((row) => (
+          {surveyAnalytics?.byVillage?.length ? (
+            surveyAnalytics.byVillage.slice(0, 6).map((row) => (
               <div className="progress-row" key={row.name}>
                 <div>
                   <span>{row.name}</span>
