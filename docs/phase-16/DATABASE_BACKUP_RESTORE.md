@@ -31,12 +31,13 @@ must encrypt backup files and restrict their storage and restore credentials.
 
 The API workflow creates a custom-format dump of its isolated PostGIS service,
 restores it to a separate ephemeral database, and compares basic table counts,
-boundary geometry count/checksum, and PostGIS availability. The job never
-connects to production.
+boundary geometry count and EWKB digest, and PostGIS availability. Restore
+commands are verbose and emit stage markers to make a failed CI run
+diagnosable. The job never connects to production.
 
 ## Evidence status
 
 Local restoration could not be executed during this audit because the Docker
-daemon/PostgreSQL service was unavailable. The CI step is the repeatable
-verification path; its first successful run must be reviewed before closing
-the operational finding.
+daemon/PostgreSQL service was unavailable. The first CI executions failed in
+the isolated restore step; this runbook and workflow are being revised, and
+the operational finding remains open until a successful run is reviewed.

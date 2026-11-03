@@ -34,7 +34,9 @@ remain unverified. See `VULNERABILITY_REPORT.md` for tracked findings.
 - Production dependency audit passed the high-severity gate; 4 moderate and 1
   low advisory remain.
 - `git diff --check` passed. CI backup/restore was added but not locally or
-  remotely verified; CI results are pending.
+  locally verified. Initial CI runs fail at the isolated restore step; the
+  workflow now emits per-stage restore diagnostics and compares an EWKB digest.
+  The operational verification remains open until that check passes.
 
 ## Remaining release requirements
 
