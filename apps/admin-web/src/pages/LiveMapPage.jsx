@@ -61,7 +61,7 @@ export function LiveMapPage() {
   const stale = locations.filter((item) => item.freshness === "STALE").length;
   const center = filtered[0]
     ? [Number(filtered[0].latitude), Number(filtered[0].longitude)]
-    : [21.2514, 81.6296];
+    : null;
 
   return (
     <>
@@ -71,7 +71,7 @@ export function LiveMapPage() {
       />
       <div className="metrics-grid live-metrics">
         <div className="metric-card panel">
-          <span className="metric-label">Recent locations</span>
+          <span className="metric-label">Active locations</span>
           <strong className="metric-value">{active}</strong>
         </div>
         <div className="metric-card panel">
@@ -87,6 +87,13 @@ export function LiveMapPage() {
         <section className="panel map-panel">
           {loading ? (
             <LoadingState label="Loading locations..." />
+          ) : filtered.length === 0 ? (
+            <div className="map-empty-state">
+              <EmptyState
+                title={query ? "No matching locations" : "No location observations"}
+                description={query ? "Try another employee name." : "Authorized employee location observations will appear here when available."}
+              />
+            </div>
           ) : (
             <MapContainer center={center} zoom={13} className="live-map">
               <TileLayer

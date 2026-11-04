@@ -16,7 +16,7 @@ const titles = {
   "/surveys": ["Surveys", "Review field survey submissions."],
   "/analytics": ["Analytics", "Understand progress across your organization."],
   "/reports": ["Reports", "Generate operational reports."],
-  "/settings": ["Settings", "Configure your organization workspace."],
+  "/settings": ["Workspace settings", "Manage your account details and notification preferences."],
   "/notifications": [
     "Notifications",
     "Your operational updates and review activity.",

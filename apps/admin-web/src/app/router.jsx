@@ -2,8 +2,10 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout.jsx";
 import { ForgotPasswordPage } from "../features/auth/ForgotPasswordPage.jsx";
 import { LoginPage } from "../features/auth/LoginPage.jsx";
+import { InvitationActivationPage } from "../features/auth/InvitationActivationPage.jsx";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute.jsx";
-import { AnalyticsPage, SettingsPage } from "../pages/modulePages.jsx";
+import { AnalyticsPage } from "../pages/AnalyticsPage.jsx";
+import { SettingsPage } from "../pages/SettingsPage.jsx";
 import { SurveysPage } from "../pages/SurveysPage.jsx";
 import { SurveyDetailsPage } from "../pages/SurveyDetailsPage.jsx";
 import { VillagesPage } from "../pages/VillagesPage.jsx";
@@ -25,6 +27,7 @@ export function AppRouter() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/activate" element={<InvitationActivationPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />

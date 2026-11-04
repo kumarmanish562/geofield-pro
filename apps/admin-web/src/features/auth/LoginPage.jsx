@@ -73,6 +73,7 @@ export function LoginPage() {
         <Link className="text-link" to="/forgot-password">
           Forgot your password?
         </Link>
+        <p className="activation-footer">Have an invitation? <Link className="text-link" to="/activate">Activate your account</Link></p>
       </section>
       <aside className="auth-aside">
         <p className="eyebrow">Operations overview</p>

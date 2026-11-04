@@ -89,6 +89,15 @@ export async function requestPasswordReset(email) {
   return data.data;
 }
 
+export async function acceptInvitation({ token, name, password }) {
+  const { data } = await apiClient.post(
+    "/auth/accept-invitation",
+    { token, name, password, clientType: "web" },
+    { headers: { Authorization: undefined } },
+  );
+  return data.data;
+}
+
 export function getApiErrorMessage(error) {
   return (
     error.response?.data?.error?.message ??

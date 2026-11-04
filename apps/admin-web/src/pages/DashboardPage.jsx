@@ -82,6 +82,11 @@ export function DashboardPage() {
       ),
     [surveys],
   );
+  const villageRows = surveyAnalytics?.byVillage?.slice(0, 6) ?? [];
+  const largestVillageCount = Math.max(
+    1,
+    ...villageRows.map((row) => Number(row.count) || 0),
+  );
   return (
     <div className="dashboard-page">
       <PageHeader
@@ -192,14 +197,14 @@ export function DashboardPage() {
           <div className="panel-heading">
             <div>
               <h3>Village coverage</h3>
-              <p>Survey volume by operational area.</p>
+              <p>Survey volume by village, scaled to the highest displayed count.</p>
             </div>
             <Link className="panel-link" to="/reports">
               Reports <ArrowUpRight size={15} />
             </Link>
           </div>
-          {surveyAnalytics?.byVillage?.length ? (
-            surveyAnalytics.byVillage.slice(0, 6).map((row) => (
+          {villageRows.length ? (
+            villageRows.map((row) => (
               <div className="progress-row" key={row.name}>
                 <div>
                   <span>{row.name}</span>
@@ -207,7 +212,9 @@ export function DashboardPage() {
                 </div>
                 <div className="progress-track">
                   <span
-                    style={{ width: `${Math.min(100, row.count * 10)}%` }}
+                    style={{
+                      width: `${Math.min(100, ((Number(row.count) || 0) / largestVillageCount) * 100)}%`,
+                    }}
                   />
                 </div>
               </div>

@@ -1,5 +1,6 @@
-import { ModulePlaceholderPage } from "./ModulePlaceholderPage.jsx";
 import { AnalyticsPage } from "./AnalyticsPage.jsx";
+import { SettingsPage } from "./SettingsPage.jsx";
+import { ModulePlaceholderPage } from "./ModulePlaceholderPage.jsx";
 const pages = {
   AttendancePage: ["Attendance", "Track team availability and work sessions."],
   AssignmentsPage: ["Assignments", "Plan and monitor field work."],
@@ -13,7 +14,6 @@ const pages = {
     "Reports",
     "Generate operational reports for your organization.",
   ],
-  SettingsPage: ["Settings", "Configure your organization workspace."],
 };
 export const modulePages = Object.fromEntries(
   Object.entries(pages).map(([name, [title, description]]) => [
@@ -30,6 +30,5 @@ export const {
   LiveMapPage,
   SurveysPage,
   ReportsPage,
-  SettingsPage,
 } = modulePages;
-export { AnalyticsPage };
+export { AnalyticsPage, SettingsPage };
